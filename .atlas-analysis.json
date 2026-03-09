@@ -1,0 +1,129 @@
+{
+  "projectType": "framework",
+  "projectName": "ClansPlus",
+  "projectDescription": "A Minecraft plugin framework that allows players to create and manage their own clans with war events, skills, and storage systems.",
+  "theme": "aspen",
+  "primaryColor": "#ca9121",
+  "lightColor": "#5f574a",
+  "darkColor": "#dfdfdf",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/clans",
+              "concepts/ranks",
+              "concepts/skills",
+              "concepts/events"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/setup",
+              "configuration/database",
+              "configuration/messages",
+              "configuration/permissions"
+            ]
+          },
+          {
+            "group": "Commands",
+            "pages": [
+              "commands/player-commands",
+              "commands/admin-commands"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/clan-management",
+              "features/war-events",
+              "features/storage",
+              "features/skill-system",
+              "features/integrations"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "api/overview",
+              "api/setup"
+            ]
+          },
+          {
+            "group": "Core API",
+            "pages": [
+              "api/clanplus-interface",
+              "api/clan-manager",
+              "api/data-manager"
+            ]
+          },
+          {
+            "group": "Data Models",
+            "pages": [
+              "api/models/clan-data",
+              "api/models/player-data",
+              "api/models/enums"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "api/examples/basic-usage",
+              "api/examples/clan-operations",
+              "api/examples/player-management"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Clan creation and management system",
+    "Hierarchical rank system (Owner, Manager, Member)",
+    "Clan war events with scoring",
+    "Upgradeable skill system",
+    "Clan storage and inventory management",
+    "Multi-database support (H2, MySQL)",
+    "PlaceholderAPI integration",
+    "Discord webhook integration",
+    "Comprehensive Java API for developers",
+    "Folia server support"
+  ],
+  "publicApiSurface": [
+    "ClanPlus.getPluginDataManager()",
+    "ClanPlus.getClanManager()",
+    "PluginDataManagerUtil.getClanDatabase(String)",
+    "PluginDataManagerUtil.getPlayerDatabase(String)",
+    "PluginDataManagerUtil.saveClanDatabaseToStorage(String, IClanData)",
+    "PluginDataManagerUtil.savePlayerDatabaseToStorage(String, IPlayerData)",
+    "ClanManagerUtil.isClanExisted(String)",
+    "ClanManagerUtil.isPlayerInClan(String)",
+    "ClanManagerUtil.addPlayerToAClan(String, String, boolean)",
+    "ClanManagerUtil.alertClan(String, String)",
+    "ClanManagerUtil.openClanStorage(Player, String, int, boolean)",
+    "IClanData.getName()",
+    "IClanData.getMembers()",
+    "IClanData.getScore()",
+    "IClanData.getSkillLevel()",
+    "IPlayerData.getClan()",
+    "IPlayerData.getRank()",
+    "IPlayerData.getScoreCollected()"
+  ]
+}
