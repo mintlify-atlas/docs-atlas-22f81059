@@ -1,0 +1,175 @@
+---
+title: 'IPlayerData'
+description: 'Interface for managing player data and clan membership'
+---
+
+## Overview
+
+The `IPlayerData` interface provides methods to access and modify player information, including clan membership, rank, activity tracking, and contribution statistics.
+
+## Interface Methods
+
+### Player Identity
+
+<ResponseField name="getPlayerName()" type="String">
+  Returns the player's username.
+</ResponseField>
+
+<ResponseField name="setPlayerName(String playerName)" type="void">
+  Sets the player's username.
+  
+  **Parameters:**
+  - `playerName` - The player's Minecraft username
+</ResponseField>
+
+<ResponseField name="getUUID()" type="String">
+  Returns the player's unique identifier (UUID).
+</ResponseField>
+
+<ResponseField name="setUUID(String UUID)" type="void">
+  Sets the player's UUID.
+  
+  **Parameters:**
+  - `UUID` - The player's Minecraft UUID as a string
+</ResponseField>
+
+### Clan Membership
+
+<ResponseField name="getClan()" type="String">
+  Returns the name of the clan the player belongs to, or null if not in a clan.
+</ResponseField>
+
+<ResponseField name="setClan(String clan)" type="void">
+  Sets the player's clan membership.
+  
+  **Parameters:**
+  - `clan` - The clan name, or null to remove from clan
+</ResponseField>
+
+<ResponseField name="getRank()" type="Rank">
+  Returns the player's rank within their clan (LEADER, MANAGER, or MEMBER).
+</ResponseField>
+
+<ResponseField name="setRank(Rank rank)" type="void">
+  Sets the player's clan rank.
+  
+  **Parameters:**
+  - `rank` - The player's rank from the Rank enum
+</ResponseField>
+
+### Timestamps
+
+<ResponseField name="getJoinDate()" type="long">
+  Returns the timestamp when the player joined their current clan, in milliseconds.
+</ResponseField>
+
+<ResponseField name="setJoinDate(long joinDate)" type="void">
+  Sets the clan join timestamp.
+  
+  **Parameters:**
+  - `joinDate` - Unix timestamp in milliseconds
+</ResponseField>
+
+<ResponseField name="getLastActivated()" type="long">
+  Returns the timestamp of the player's last activity, in milliseconds.
+</ResponseField>
+
+<ResponseField name="setLastActivated(long lastActivated)" type="void">
+  Sets the last activity timestamp.
+  
+  **Parameters:**
+  - `lastActivated` - Unix timestamp in milliseconds
+</ResponseField>
+
+### Statistics
+
+<ResponseField name="getScoreCollected()" type="long">
+  Returns the total score the player has contributed to their clan.
+</ResponseField>
+
+<ResponseField name="setScoreCollected(long scoreCollected)" type="void">
+  Sets the player's total contributed score.
+  
+  **Parameters:**
+  - `scoreCollected` - The cumulative score value
+</ResponseField>
+
+## Usage Example
+
+```java
+import com.cortezromeo.clansplus.api.storage.IPlayerData;
+import com.cortezromeo.clansplus.api.enums.Rank;
+import org.bukkit.entity.Player;
+
+// Get player data from API
+Player player = ...; // Bukkit player object
+IPlayerData playerData = clansPlusAPI.getPlayerData(player.getUniqueId().toString());
+
+// Check clan membership
+if (playerData.getClan() != null) {
+    String clanName = playerData.getClan();
+    Rank rank = playerData.getRank();
+    
+    System.out.println(player.getName() + " is a " + rank + " in clan " + clanName);
+    
+    // Check if player is a leader or manager
+    if (rank == Rank.LEADER || rank == Rank.MANAGER) {
+        System.out.println("Player has management permissions");
+    }
+} else {
+    System.out.println(player.getName() + " is not in a clan");
+}
+
+// View player statistics
+long scoreContributed = playerData.getScoreCollected();
+long joinTimestamp = playerData.getJoinDate();
+long lastActive = playerData.getLastActivated();
+
+System.out.println("Score contributed: " + scoreContributed);
+
+// Update player data
+playerData.setScoreCollected(scoreContributed + 100);
+playerData.setLastActivated(System.currentTimeMillis());
+```
+
+## Common Use Cases
+
+### Checking Leadership Status
+
+```java
+public boolean canManageClan(IPlayerData playerData) {
+    Rank rank = playerData.getRank();
+    return rank == Rank.LEADER || rank == Rank.MANAGER;
+}
+```
+
+### Calculating Membership Duration
+
+```java
+public long getDaysInClan(IPlayerData playerData) {
+    long joinDate = playerData.getJoinDate();
+    long currentTime = System.currentTimeMillis();
+    long millisInDay = 1000L * 60 * 60 * 24;
+    
+    return (currentTime - joinDate) / millisInDay;
+}
+```
+
+### Tracking Activity
+
+```java
+public boolean isPlayerActive(IPlayerData playerData) {
+    long lastActive = playerData.getLastActivated();
+    long currentTime = System.currentTimeMillis();
+    long inactiveDays = 7;
+    long inactiveThreshold = inactiveDays * 24 * 60 * 60 * 1000L;
+    
+    return (currentTime - lastActive) < inactiveThreshold;
+}
+```
+
+## See Also
+
+- [IClanData](/api/models/clan-data) - Clan data interface
+- [Rank Enum](/api/models/enums#rank) - Clan rank enumeration
+- [ClanPlus Interface](/api/clanplus-interface) - Main API interface

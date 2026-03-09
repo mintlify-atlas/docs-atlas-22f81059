@@ -1,0 +1,241 @@
+---
+title: API Setup
+description: How to add ClansPlus API to your project and initialize it
+---
+
+## Adding the Dependency
+
+To use the ClansPlus API in your plugin, you need to add it as a dependency to your project.
+
+### Repository Configuration
+
+First, add the JitPack repository to your build configuration:
+
+<CodeGroup>
+
+```xml Maven
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+```gradle Gradle (Groovy)
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+```
+
+```kotlin Gradle (Kotlin)
+repositories {
+    maven("https://jitpack.io")
+}
+```
+
+</CodeGroup>
+
+### Dependency Configuration
+
+Then add the ClansPlus dependency:
+
+<CodeGroup>
+
+```xml Maven
+<dependency>
+    <groupId>com.github.CortezRomeo</groupId>
+    <artifactId>ClansPlus</artifactId>
+    <version>2.9</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+```gradle Gradle (Groovy)
+dependencies {
+    compileOnly 'com.github.CortezRomeo:ClansPlus:2.9'
+}
+```
+
+```kotlin Gradle (Kotlin)
+dependencies {
+    compileOnly("com.github.CortezRomeo:ClansPlus:2.9")
+}
+```
+
+</CodeGroup>
+
+<Note>
+  Use `provided` scope in Maven or `compileOnly` in Gradle since ClansPlus will be available at runtime on the server.
+</Note>
+
+### plugin.yml Configuration
+
+Add ClansPlus as a dependency in your `plugin.yml`:
+
+```yaml plugin.yml
+name: YourPlugin
+version: 1.0.0
+main: com.example.yourplugin.YourPlugin
+api-version: 1.16
+depend: [ClansPlus]
+```
+
+Use `depend` if ClansPlus is required, or `softdepend` if it's optional:
+
+```yaml plugin.yml (optional)
+softdepend: [ClansPlus]
+```
+
+## Checking if ClansPlus is Loaded
+
+Before using the API, verify that ClansPlus is installed and enabled on the server:
+
+```java
+@Override
+public void onEnable() {
+    if (Bukkit.getPluginManager().getPlugin("ClansPlus") == null) {
+        getLogger().severe("ClansPlus is not in the server!");
+        Bukkit.getPluginManager().disablePlugin(this);
+        return;
+    }
+    
+    // Continue with plugin initialization
+    initializeAPI();
+}
+```
+
+<Warning>
+  Always check if ClansPlus is loaded before attempting to use the API to prevent NullPointerExceptions.
+</Warning>
+
+## Initializing the API
+
+Once you've confirmed ClansPlus is loaded, get the API instance through Bukkit's ServicesManager:
+
+```java
+import com.cortezromeo.clansplus.api.ClanPlus;
+import org.bukkit.Bukkit;
+
+public class YourPlugin extends JavaPlugin {
+    private ClanPlus clansPlusAPI;
+    
+    @Override
+    public void onEnable() {
+        // Check if ClansPlus is loaded
+        if (Bukkit.getPluginManager().getPlugin("ClansPlus") == null) {
+            getLogger().severe("ClansPlus is not in the server!");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+        
+        // Initialize the API
+        clansPlusAPI = Bukkit.getServicesManager()
+            .getRegistration(ClanPlus.class)
+            .getProvider();
+        
+        getLogger().info("Successfully hooked into ClansPlus!");
+    }
+    
+    public ClanPlus getClansPlusAPI() {
+        return clansPlusAPI;
+    }
+}
+```
+
+## Quick Start Example
+
+Here's a complete example showing how to set up and use the API:
+
+```java
+import com.cortezromeo.clansplus.api.ClanPlus;
+import com.cortezromeo.clansplus.api.storage.IClanData;
+import com.cortezromeo.clansplus.api.enums.Rank;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class MyClanPlugin extends JavaPlugin {
+    private ClanPlus clansPlusAPI;
+    
+    @Override
+    public void onEnable() {
+        // Verify ClansPlus is loaded
+        if (Bukkit.getPluginManager().getPlugin("ClansPlus") == null) {
+            getLogger().severe("ClansPlus is not in the server!");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+        
+        // Initialize plugin API
+        clansPlusAPI = Bukkit.getServicesManager()
+            .getRegistration(ClanPlus.class)
+            .getProvider();
+        
+        // Example: Create a clan programmatically
+        createExampleClan();
+    }
+    
+    private void createExampleClan() {
+        String clanName = "HelloClan";
+        String playerName = "Cortez_Romeo";
+        
+        // Check if clan already exists
+        if (!clansPlusAPI.getPluginDataManager()
+                .getClanDatabase().containsKey(clanName)) {
+            // Load clan database (creates if doesn't exist)
+            clansPlusAPI.getPluginDataManager()
+                .loadClanDatabase(clanName);
+        }
+        
+        // Get clan data
+        IClanData clanData = clansPlusAPI.getPluginDataManager()
+            .getClanDatabase(clanName);
+        
+        // Add a player to the clan
+        clansPlusAPI.getClanManager()
+            .addPlayerToAClan(playerName, clanName, false);
+        
+        // Promote player to leader
+        clansPlusAPI.getPluginDataManager()
+            .getPlayerDatabase(playerName).setRank(Rank.LEADER);
+        clanData.setOwner(playerName);
+        
+        // Customize clan
+        clanData.setMessage("This is the first message of this clan!");
+        clanData.setCustomName("&bSuper Clan");
+        
+        // Send alert to clan members
+        clansPlusAPI.getClanManager()
+            .alertClan(clanName, "Have a good day!");
+        
+        // Save changes to storage
+        clansPlusAPI.getPluginDataManager()
+            .saveClanDatabaseToStorage(clanName, clanData);
+        
+        getLogger().info("Created clan: " + clanName);
+    }
+}
+```
+
+## Version Compatibility
+
+The ClansPlus API requires:
+
+- **Java 11** or newer
+- **Spigot/Paper** 1.16.5 or newer
+- **Folia** support (for async-enabled servers)
+
+<Info>
+  The latest version of ClansPlus (2.9) is built with Java 16 but is compatible with Java 11+ runtime environments.
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Overview" icon="book" href="/api/overview">
+    Learn about the API structure and key interfaces
+  </Card>
+  <Card title="Usage Examples" icon="code" href="/api/examples/basic-usage">
+    See practical examples of common API operations
+  </Card>
+</CardGroup>

@@ -1,0 +1,511 @@
+---
+title: "Admin Commands"
+description: "Complete reference for all /clanadmin administrator commands"
+---
+
+## Overview
+
+The `/clanadmin` command provides server administrators with powerful tools to manage clans, modify data, control events, and maintain the plugin. All commands require the `clanplus.admin` permission.
+
+<Warning>
+  Admin commands can make significant changes to clan data. Always create backups before making major modifications.
+</Warning>
+
+## Permission Required
+
+All `/clanadmin` commands require:
+- **Permission:** `clanplus.admin`
+
+---
+
+## Core Administration
+
+### Reload Plugin
+
+```bash
+/clanadmin reload
+```
+
+Reloads all plugin configuration files, language files, inventory configurations, and skills without restarting the server.
+
+**What gets reloaded:**
+- Main config.yml
+- All inventory configuration files
+- Language files (English, Vietnamese)
+- Event configurations
+- Skill configurations
+- Upgrade configurations
+- Discord webhook settings
+
+**Example output:**
+```
+Plugin reloaded (245ms)
+```
+
+### Create Backup
+
+```bash
+/clanadmin backup
+/clanadmin backup <custom_file_name>
+```
+
+Creates a backup of all clan and player data in the plugin's backup folder.
+
+**Parameters:**
+- `<custom_file_name>` - (Optional) Custom name for the backup file
+
+**Prohibited characters:** `\ / : * ? < > |`
+
+**Examples:**
+```bash
+/clanadmin backup                      # Create backup with auto-generated name
+/clanadmin backup pre-update-backup    # Create backup with custom name
+```
+
+<Tip>
+  Always create a backup before transferring database types or making bulk modifications.
+</Tip>
+
+### Chat Spy
+
+```bash
+/clanadmin chatspy
+```
+
+Toggles clan chat spy mode, allowing you to see all clan chat messages across the server.
+
+**Works for:**
+- Players with `clanplus.admin` permission
+- Console (when run from console)
+
+**Example:**
+```
+Clan chat spy enabled successfully.
+```
+
+---
+
+## Database Management
+
+### Transfer Database Type
+
+```bash
+/clanadmin transferPluginDatabaseType <type>
+```
+
+Transfers all clan data from the current database type to a different one.
+
+**Parameters:**
+- `<type>` - The target database type: `H2`, `MYSQL`, `MARIADB`, `SQLITE`
+
+**Available types:**
+- `H2` - Local H2 database (default)
+- `MYSQL` - MySQL database
+- `MARIADB` - MariaDB database
+- `SQLITE` - SQLite database
+
+<Warning>
+  For data safety, perform this operation while no players are online. Always create a backup first using `/clanadmin backup`.
+</Warning>
+
+**Example:**
+```bash
+/clanadmin transferPluginDatabaseType MYSQL
+```
+
+### Delete Clan
+
+```bash
+/clanadmin delete <clan_name>
+```
+
+Permanently deletes a clan and removes all members from it.
+
+**Parameters:**
+- `<clan_name>` - The name of the clan to delete
+
+**Example:**
+```bash
+/clanadmin delete Warriors
+```
+
+---
+
+## Clan Data Management
+
+### Set Clan Data
+
+```bash
+/clanadmin setClanData <clan_name> <type> <action> <value>
+```
+
+Modifies various aspects of a clan's data.
+
+**Parameters:**
+- `<clan_name>` - The name of the clan
+- `<type>` - The data type to modify (see table below)
+- `<action>` - The action: `set`, `give`, `remove`, `reset`, `add`
+- `<value>` - The value to apply
+
+#### Available Types and Actions
+
+| Type | Actions | Description | Example |
+|------|---------|-------------|----------|
+| `score` | `set`, `give`, `remove`, `reset` | Clan score points | `/clanadmin setClanData Warriors score give 100` |
+| `warpoint` | `set`, `give`, `remove`, `reset` | War event points | `/clanadmin setClanData Warriors warpoint set 500` |
+| `warning` | `set`, `give`, `remove`, `reset` | Warning count | `/clanadmin setClanData Warriors warning reset` |
+| `createddate` | `set` | Creation timestamp (milliseconds) | `/clanadmin setClanData Warriors createddate set 1234567890` |
+| `customname` | `set`, `reset` | Custom display name | `/clanadmin setClanData Warriors customname set &b&lWarriors` |
+| `message` | `set`, `reset` | Clan message/description | `/clanadmin setClanData Warriors message set Welcome!` |
+| `icon` | `set` | Clan icon | `/clanadmin setClanData Warriors icon set MATERIAL DIAMOND_SWORD` |
+| `subjectpermission` | `set`, `reset` | Permission settings | `/clanadmin setClanData Warriors subjectpermission set INVITE MEMBER` |
+| `discordchannelid` | `set`, `reset` | Discord channel ID | `/clanadmin setClanData Warriors discordchannelid set 123456` |
+| `discordjoinlink` | `set`, `reset` | Discord invite link | `/clanadmin setClanData Warriors discordjoinlink set https://discord.gg/abc` |
+| `members` | `add`, `remove` | Clan member list | `/clanadmin setClanData Warriors members add Steve` |
+| `allies` | `add`, `remove` | Allied clans | `/clanadmin setClanData Warriors allies add Knights` |
+
+#### Icon Type Examples
+
+```bash
+# Set material icon
+/clanadmin setClanData Warriors icon set MATERIAL DIAMOND_SWORD
+
+# Set player head icon
+/clanadmin setClanData Warriors icon set PLAYERHEAD Notch
+
+# Set custom head icon
+/clanadmin setClanData Warriors icon set CUSTOMHEAD 12345
+```
+
+#### Subject Permission Examples
+
+```bash
+# Allow all members to invite
+/clanadmin setClanData Warriors subjectpermission set INVITE MEMBER
+
+# Require manager for clan upgrades
+/clanadmin setClanData Warriors subjectpermission set UPGRADE MANAGER
+
+# Reset all permissions to default
+/clanadmin setClanData Warriors subjectpermission reset
+```
+
+### Set Clan Skill Data
+
+```bash
+/clanadmin setClanSkillData <clan_name> <skill_id> <skill_level>
+```
+
+Directly sets the level of a specific skill for a clan.
+
+**Parameters:**
+- `<clan_name>` - The name of the clan
+- `<skill_id>` - The numeric ID of the skill
+- `<skill_level>` - The level to set
+
+**Example:**
+```bash
+/clanadmin setClanSkillData Warriors 1 10
+```
+
+### Reset All Clans
+
+```bash
+/clanadmin clanResetAll <type>
+```
+
+Resets a specific stat for all clans on the server.
+
+**Parameters:**
+- `<type>` - The stat to reset: `score`, `warpoint`, or `warning`
+
+**Examples:**
+```bash
+/clanadmin clanResetAll score      # Reset all clan scores
+/clanadmin clanResetAll warpoint   # Reset all war points
+/clanadmin clanResetAll warning    # Reset all warnings
+```
+
+<Warning>
+  This action affects ALL clans on the server and cannot be undone. Consider creating a backup first.
+</Warning>
+
+---
+
+## Player Data Management
+
+### Set Player Data
+
+```bash
+/clanadmin setPlayerData <player_name> <type> <action> <value>
+```
+
+Modifies player-specific clan data.
+
+**Parameters:**
+- `<player_name>` - The player's username
+- `<type>` - The data type to modify (see table below)
+- `<action>` - The action: `set` or `reset`
+- `<value>` - The value to apply
+
+#### Available Types and Actions
+
+| Type | Actions | Description | Example |
+|------|---------|-------------|----------|
+| `clanname` | `set`, `reset` | Player's clan membership | `/clanadmin setPlayerData Steve clanname set Warriors` |
+| `rank` | `set` | Player's rank in clan | `/clanadmin setPlayerData Steve rank set MANAGER` |
+| `joindate` | `set` | Join timestamp (milliseconds) | `/clanadmin setPlayerData Steve joindate set 1234567890` |
+| `scorecollected` | `set`, `reset` | Score collected by player | `/clanadmin setPlayerData Steve scorecollected set 1000` |
+| `lastactivated` | `set` | Last activity timestamp | `/clanadmin setPlayerData Steve lastactivated set 1234567890` |
+
+#### Available Ranks
+
+- `MEMBER` - Regular clan member
+- `MANAGER` - Clan manager with elevated permissions
+- `LEADER` - Clan owner/leader
+
+**Examples:**
+```bash
+# Add player to a clan
+/clanadmin setPlayerData Steve clanname set Warriors
+
+# Promote player to manager
+/clanadmin setPlayerData Steve rank set MANAGER
+
+# Remove player from clan
+/clanadmin setPlayerData Steve clanname reset
+
+# Reset player's collected score
+/clanadmin setPlayerData Steve scorecollected reset
+```
+
+<Note>
+  When setting a player's clan with `clanname set`, the player is automatically added to the clan's member list.
+</Note>
+
+---
+
+## Clan Storage Management
+
+### Open Clan Storage
+
+```bash
+/clanadmin openClanStorage <clan_name> <storage_number>
+```
+
+Opens a specific clan storage as an admin for viewing or modification.
+
+**Parameters:**
+- `<clan_name>` - The name of the clan
+- `<storage_number>` - The storage number to open (1 to max storage)
+
+**Example:**
+```bash
+/clanadmin openClanStorage Warriors 1
+```
+
+<Tip>
+  This command is useful for recovering items, investigating issues, or helping clans with storage management.
+</Tip>
+
+---
+
+## Event Management
+
+### War Event Control
+
+```bash
+/clanadmin event war <action> [value]
+```
+
+Controls the clan war event system.
+
+**Available Actions:**
+
+#### Start War Event
+
+```bash
+/clanadmin event war start
+```
+
+Manually starts a war event. Will not start if one is already running.
+
+#### End War Event
+
+```bash
+/clanadmin event war end
+```
+
+Manually ends the current war event. Will not end if no event is running.
+
+#### Set War Time
+
+```bash
+/clanadmin event war settime <seconds>
+```
+
+Sets the remaining time for the current war event.
+
+**Parameters:**
+- `<seconds>` - The new time remaining in seconds (minimum 1)
+
+**Example:**
+```bash
+/clanadmin event war settime 600   # Set to 10 minutes remaining
+```
+
+---
+
+## Command Syntax Reference
+
+When running `/clanadmin` without arguments, you'll see this helpful syntax guide:
+
+```
+ClanPlus (Version: X.X) - Admin
+Plugin developed by Cortez_Romeo
+
+/clanadmin reload
+/clanadmin chatspy
+/clanadmin transferPluginDatabaseType <type>
+/clanadmin backup (custom file name)
+/clanadmin setClanData <clan name> <type> <give/add/set/remove/reset> <value>
+Types: score, warpoint, warning, createddate, customname, message, icon, 
+       spawnpoint, subjectpermission, discordchannelid, discordjoinlink, 
+       members, allies
+/clanadmin setClanSkillData <clan name> <skill id> <skill level>
+/clanadmin setPlayerData <player name> <type> <set/reset> <value>
+Types: clanname, rank, joindate, scorecollected, lastactivated
+/clanadmin openClanStorage <clan name> <storage number>
+/clanadmin clanResetAll <type>
+Types: score, warpoint, warning
+/clanadmin event <event> <start/end/settime> <value>
+/clanadmin delete <clan name>
+
+<>: Required
+(): Optional
+```
+
+---
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Before Making Changes">
+    1. **Always create a backup** using `/clanadmin backup`
+    2. **Test on a development server** if possible
+    3. **Notify players** before making major changes
+    4. **Document your changes** for future reference
+  </Accordion>
+
+  <Accordion title="Database Safety">
+    1. **Backup before transfers** - Always run `/clanadmin backup` before transferring database types
+    2. **No players online** - Ensure no players are online during database transfers
+    3. **Test the new database** - Verify data integrity after transfers
+    4. **Keep old backups** - Don't delete old backups immediately after transfers
+  </Accordion>
+
+  <Accordion title="Bulk Operations">
+    1. **Use clanResetAll carefully** - This affects all clans simultaneously
+    2. **Announce beforehand** - Let players know about bulk resets (like seasonal score resets)
+    3. **Consider timing** - Perform during low-activity periods
+    4. **Document the reset** - Keep records of when and why resets occur
+  </Accordion>
+
+  <Accordion title="Player Data Management">
+    1. **Verify player names** - Double-check spelling before modifying data
+    2. **Check current status** - Review current data before making changes
+    3. **Leader transfers** - Be careful when changing clan leaders via setPlayerData
+    4. **Handle disputes carefully** - Document reasons for manual interventions
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Common Admin Tasks
+
+### Seasonal Score Reset
+
+```bash
+# 1. Announce to players
+# 2. Create backup
+/clanadmin backup season-3-final
+
+# 3. Reset all scores
+/clanadmin clanResetAll score
+
+# 4. Reset all war points
+/clanadmin clanResetAll warpoint
+```
+
+### Transfer Player Between Clans
+
+```bash
+# 1. Remove from old clan
+/clanadmin setPlayerData Steve clanname reset
+
+# 2. Add to new clan
+/clanadmin setPlayerData Steve clanname set Warriors
+
+# 3. Set appropriate rank
+/clanadmin setPlayerData Steve rank set MEMBER
+```
+
+### Fix Clan Permissions
+
+```bash
+# Reset to default permissions
+/clanadmin setClanData Warriors subjectpermission reset
+
+# Or set specific permission
+/clanadmin setClanData Warriors subjectpermission set INVITE MANAGER
+```
+
+### Database Migration
+
+```bash
+# 1. Announce maintenance
+# 2. Remove all players from server
+# 3. Create backup
+/clanadmin backup pre-mysql-migration
+
+# 4. Transfer database
+/clanadmin transferPluginDatabaseType MYSQL
+
+# 5. Verify data integrity
+# 6. Allow players back
+```
+
+---
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Command Not Working">
+    - Verify you have `clanplus.admin` permission
+    - Check console for error messages
+    - Ensure clan/player names are spelled correctly
+    - Try `/clanadmin reload` to refresh configurations
+  </Accordion>
+
+  <Accordion title="Database Transfer Failed">
+    - Check that no players are online
+    - Verify database credentials in config.yml
+    - Restore from backup if needed
+    - Check console logs for specific errors
+    - Ensure target database is accessible
+  </Accordion>
+
+  <Accordion title="Data Not Saving">
+    - Run `/clanadmin reload` to refresh
+    - Check file permissions on the plugin folder
+    - Verify database connection is stable
+    - Check console for save errors
+  </Accordion>
+
+  <Accordion title="Backup Issues">
+    - Verify backup folder exists and is writable
+    - Check available disk space
+    - Avoid special characters in backup names
+    - Check console output for specific errors
+  </Accordion>
+</AccordionGroup>

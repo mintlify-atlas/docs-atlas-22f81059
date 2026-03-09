@@ -1,0 +1,391 @@
+---
+title: 'Data Manager'
+description: 'Database operations for managing clan and player data'
+---
+
+## Overview
+
+The `PluginDataManagerUtil` interface provides methods for loading, saving, and managing clan and player data in the ClansPlus database. It supports both in-memory operations and persistent storage.
+
+## Getting the Data Manager
+
+```java
+ClanPlus clansPlusAPI = Bukkit.getServicesManager()
+    .getRegistration(ClanPlus.class)
+    .getProvider();
+    
+PluginDataManagerUtil dataManager = clansPlusAPI.getPluginDataManager();
+```
+
+## Database Retrieval
+
+### getPlayerDatabase()
+
+Returns the entire player database as a HashMap.
+
+<ResponseField name="return" type="HashMap<String, IPlayerData>">
+  Map of player names to their data objects
+</ResponseField>
+
+```java
+HashMap<String, IPlayerData> allPlayers = dataManager.getPlayerDatabase();
+```
+
+Also available for a specific player:
+
+<ParamField path="playerName" type="String" required>
+  The player's name
+</ParamField>
+
+<ResponseField name="return" type="IPlayerData">
+  The player's data object, or null if not found
+</ResponseField>
+
+```java
+IPlayerData playerData = dataManager.getPlayerDatabase("Cortez_Romeo");
+if (playerData != null) {
+    String clan = playerData.getClan();
+    Rank rank = playerData.getRank();
+}
+```
+
+### getClanDatabase()
+
+Returns the entire clan database as a TreeMap.
+
+<ResponseField name="return" type="TreeMap<String, IClanData>">
+  Sorted map of clan names to their data objects
+</ResponseField>
+
+```java
+TreeMap<String, IClanData> allClans = dataManager.getClanDatabase();
+```
+
+Also available for a specific clan:
+
+<ParamField path="clanName" type="String" required>
+  The clan's name
+</ParamField>
+
+<ResponseField name="return" type="IClanData">
+  The clan's data object, or null if not found
+</ResponseField>
+
+```java
+IClanData clanData = dataManager.getClanDatabase("HelloClan");
+if (clanData != null) {
+    String owner = clanData.getOwner();
+    int score = clanData.getScore();
+    List<String> members = clanData.getMembers();
+}
+```
+
+### getClanDatabaseByPlayerName()
+
+Returns a player's clan data by looking up their player name.
+
+<ParamField path="playerName" type="String" required>
+  The player's name
+</ParamField>
+
+<ResponseField name="return" type="IClanData">
+  The clan data object for the player's clan, or null if player is not in a clan
+</ResponseField>
+
+```java
+IClanData playerClan = dataManager.getClanDatabaseByPlayerName("Cortez_Romeo");
+if (playerClan != null) {
+    String clanName = playerClan.getName();
+}
+```
+
+## Loading Data
+
+### loadClanDatabase()
+
+Loads a clan's data from storage into memory.
+
+<ParamField path="clanName" type="String" required>
+  The name of the clan to load
+</ParamField>
+
+```java
+// Load clan data from storage
+dataManager.loadClanDatabase("HelloClan");
+
+// Now you can access the clan data
+IClanData clanData = dataManager.getClanDatabase("HelloClan");
+```
+
+### loadPlayerDatabase()
+
+Loads a player's data from storage into memory.
+
+<ParamField path="playerName" type="String" required>
+  The player's name to load
+</ParamField>
+
+```java
+// Load player data from storage
+dataManager.loadPlayerDatabase("Cortez_Romeo");
+
+// Now you can access the player data
+IPlayerData playerData = dataManager.getPlayerDatabase("Cortez_Romeo");
+```
+
+### loadAllDatabase()
+
+Loads all clan and player data from storage into memory.
+
+```java
+// Load all data (useful on plugin startup)
+dataManager.loadAllDatabase();
+```
+
+## Saving Data to HashMap
+
+These methods update the in-memory cache without writing to persistent storage.
+
+### saveClanDatabaseToHashMap()
+
+Saves clan data to the in-memory HashMap.
+
+<ParamField path="clanName" type="String" required>
+  The clan's name
+</ParamField>
+
+<ParamField path="clanData" type="IClanData" required>
+  The clan data object to save
+</ParamField>
+
+```java
+IClanData clanData = dataManager.getClanDatabase("HelloClan");
+clanData.setScore(1000);
+clanData.setMessage("Welcome to our clan!");
+
+// Save to memory
+dataManager.saveClanDatabaseToHashMap("HelloClan", clanData);
+```
+
+### savePlayerDatabaseToHashMap()
+
+Saves player data to the in-memory HashMap.
+
+<ParamField path="playerName" type="String" required>
+  The player's name
+</ParamField>
+
+<ParamField path="playerData" type="IPlayerData" required>
+  The player data object to save
+</ParamField>
+
+```java
+IPlayerData playerData = dataManager.getPlayerDatabase("Cortez_Romeo");
+playerData.setRank(Rank.LEADER);
+playerData.setScoreCollected(500);
+
+// Save to memory
+dataManager.savePlayerDatabaseToHashMap("Cortez_Romeo", playerData);
+```
+
+## Saving Data to Storage
+
+These methods persist data to the database (file or SQL).
+
+### saveClanDatabaseToStorage()
+
+Saves clan data to persistent storage.
+
+<ParamField path="clanName" type="String" required>
+  The clan's name
+</ParamField>
+
+<ParamField path="clanData" type="IClanData" optional>
+  The clan data object to save (if not provided, uses data from HashMap)
+</ParamField>
+
+```java
+// Save with explicit data object
+IClanData clanData = dataManager.getClanDatabase("HelloClan");
+clanData.setCustomName("&bSuper Clan");
+dataManager.saveClanDatabaseToStorage("HelloClan", clanData);
+
+// Or save from HashMap
+dataManager.saveClanDatabaseToStorage("HelloClan");
+```
+
+### savePlayerDatabaseToStorage()
+
+Saves player data to persistent storage.
+
+<ParamField path="playerName" type="String" required>
+  The player's name
+</ParamField>
+
+<ParamField path="playerData" type="IPlayerData" optional>
+  The player data object to save (if not provided, uses data from HashMap)
+</ParamField>
+
+```java
+// Save with explicit data object
+IPlayerData playerData = dataManager.getPlayerDatabase("Cortez_Romeo");
+playerData.setRank(Rank.LEADER);
+dataManager.savePlayerDatabaseToStorage("Cortez_Romeo", playerData);
+
+// Or save from HashMap
+dataManager.savePlayerDatabaseToStorage("Cortez_Romeo");
+```
+
+### saveAllDatabase()
+
+Saves all clan and player data to persistent storage.
+
+```java
+// Save all data (useful on plugin shutdown)
+dataManager.saveAllDatabase();
+```
+
+## Data Management
+
+### clearPlayerDatabase()
+
+Removes a player's data from the in-memory cache.
+
+<ParamField path="playerName" type="String" required>
+  The player's name to clear
+</ParamField>
+
+```java
+// Clear player data from memory
+dataManager.clearPlayerDatabase("Cortez_Romeo");
+```
+
+### deleteClanData()
+
+Deletes a clan's data from both memory and storage.
+
+<ParamField path="clanName" type="String" required>
+  The clan's name to delete
+</ParamField>
+
+<ResponseField name="return" type="boolean">
+  `true` if deletion was successful, `false` otherwise
+</ResponseField>
+
+```java
+boolean deleted = dataManager.deleteClanData("HelloClan");
+if (deleted) {
+    // Clan was successfully deleted
+}
+```
+
+## Database Transfer
+
+### transferDatabase()
+
+Transfers the entire database to a different storage type (e.g., from YAML to MySQL).
+
+<ParamField path="commandSender" type="CommandSender" required>
+  The command sender to receive progress messages
+</ParamField>
+
+<ParamField path="toDatabaseType" type="DatabaseType" required>
+  The target database type to transfer to
+</ParamField>
+
+```java
+import com.cortezromeo.clansplus.api.enums.DatabaseType;
+
+dataManager.transferDatabase(sender, DatabaseType.MYSQL);
+```
+
+## Complete Example: Creating and Managing a Clan
+
+Here's a complete example from the README showing how to create a clan and manage its data:
+
+```java
+import com.cortezromeo.clansplus.api.ClanPlus;
+import com.cortezromeo.clansplus.api.ClanPlus.PluginDataManagerUtil;
+import com.cortezromeo.clansplus.api.ClanPlus.ClanManagerUtil;
+import com.cortezromeo.clansplus.api.storage.IClanData;
+import com.cortezromeo.clansplus.api.storage.IPlayerData;
+import com.cortezromeo.clansplus.api.enums.Rank;
+import org.bukkit.Bukkit;
+
+public class ClanExample {
+    
+    public void createAndSetupClan() {
+        // Initialize plugin API
+        ClanPlus clansPlusAPI = Bukkit.getServicesManager()
+            .getRegistration(ClanPlus.class)
+            .getProvider();
+        
+        PluginDataManagerUtil dataManager = clansPlusAPI.getPluginDataManager();
+        ClanManagerUtil clanManager = clansPlusAPI.getClanManager();
+        
+        // Get clan name and clan data
+        String clanName = "HelloClan";
+        
+        // If clan does not exist, load/create a new clan
+        if (!dataManager.getClanDatabase().containsKey(clanName)) {
+            dataManager.loadClanDatabase(clanName);
+        }
+        
+        IClanData clanData = dataManager.getClanDatabase(clanName);
+        
+        // Add a player to a clan
+        String playerName = "Cortez_Romeo";
+        clanManager.addPlayerToAClan(playerName, clanName, false);
+        
+        // Promote this player to leader of the clan
+        IPlayerData playerData = dataManager.getPlayerDatabase(playerName);
+        playerData.setRank(Rank.LEADER);
+        clanData.setOwner(playerName);
+        
+        // Adjust clan's database
+        clanData.setMessage("This is the first message of this clan!");
+        clanData.setCustomName("&bSuper Clan");
+        
+        // One of the things you can do with clan manager
+        clanManager.alertClan(clanName, "Have a good day!");
+        
+        // Save database to storage
+        dataManager.saveClanDatabaseToStorage(clanName, clanData);
+        dataManager.savePlayerDatabaseToStorage(playerName, playerData);
+    }
+}
+```
+
+## Best Practices
+
+1. **Always check for null**: When retrieving data, always check if the returned value is null before using it.
+
+```java
+IClanData clanData = dataManager.getClanDatabase("MyClan");
+if (clanData != null) {
+    // Safe to use clanData
+}
+```
+
+2. **Load before accessing**: If you're accessing data that might not be in memory, load it first.
+
+```java
+if (!dataManager.getClanDatabase().containsKey(clanName)) {
+    dataManager.loadClanDatabase(clanName);
+}
+```
+
+3. **Save changes**: Always save to storage after making important changes.
+
+```java
+clanData.setScore(newScore);
+dataManager.saveClanDatabaseToStorage(clanName, clanData);
+```
+
+4. **Use appropriate save method**: Use `saveToHashMap()` for temporary changes, and `saveToStorage()` for persistent changes.
+
+## Related Interfaces
+
+- [IClanData](/api/models/clan-data) - Clan data structure
+- [IPlayerData](/api/models/player-data) - Player data structure
+- [Clan Manager](/api/clan-manager) - Clan utility methods

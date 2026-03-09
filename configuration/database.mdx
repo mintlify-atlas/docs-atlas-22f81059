@@ -1,0 +1,269 @@
+---
+title: 'Database Configuration'
+description: 'Set up and manage ClansPlus data storage'
+icon: 'database'
+---
+
+## Overview
+
+ClansPlus supports multiple database types for storing clan and player data. Proper database configuration ensures optimal performance and data integrity.
+
+<Warning>
+**Important:** Restart your server after changing database settings.
+</Warning>
+
+## Database Types
+
+<ParamField path="database.type" type="string" default="H2">
+  Database system to use for storing data.
+  
+  **Available Options:**
+  - `H2` - Embedded SQL database (Recommended)
+  - `YAML` - Flat file storage
+  
+  <Note>
+  H2 is recommended for better performance and data integrity, especially for servers with many clans.
+  </Note>
+</ParamField>
+
+### H2 Database (Recommended)
+
+H2 is a fast, embedded SQL database that runs directly within the plugin. It provides:
+
+- Better performance than YAML
+- Efficient data queries
+- Built-in data validation
+- No external database server required
+
+### YAML Database
+
+YAML stores data in flat files. It's simpler but slower for large datasets:
+
+- Easy to read and manually edit
+- Lower performance with many clans
+- Larger file sizes
+- Risk of corruption if manually edited incorrectly
+
+## Performance Settings
+
+### Smart Loading
+
+<ParamField path="database.smart-loading.enabled" type="boolean" default="true">
+  Load only data for players who are in clans at server startup.
+  
+  This significantly reduces startup time on servers where many players have no clan. Players without clans have their data loaded on-demand when they join a clan.
+</ParamField>
+
+### Auto-Save
+
+<ParamField path="database.auto-save.enabled" type="boolean" default="true">
+  Automatically save all clan and player data at regular intervals.
+  
+  <Note>
+  Data is also saved when the server shuts down properly. Auto-save provides additional protection against crashes.
+  </Note>
+</ParamField>
+
+<ParamField path="database.auto-save.seconds" type="integer" default="900">
+  Interval in seconds between automatic saves (default: 900 = 15 minutes).
+  
+  Lower values provide more frequent backups but may impact performance on servers with many clans.
+</ParamField>
+
+### Bug Fixes
+
+<ParamField path="database.fix-bug-database.enabled" type="boolean" default="true">
+  Automatically detect and fix invalid data during plugin load.
+  
+  Older versions of ClansPlus may have had issues causing data inconsistencies like:
+  - Clans without a leader
+  - Orphaned player data
+  - Invalid rank assignments
+  
+  When enabled, the system automatically removes or fixes invalid data during startup.
+</ParamField>
+
+## Backup Settings
+
+<ParamField path="database.backup-settings.file-name-date-format" type="string" default="HH-mm-ss MM-dd-yyyy">
+  Date format for backup file names using Java SimpleDateFormat.
+  
+  **Common Format Patterns:**
+  - `HH` - Hour (00-23)
+  - `mm` - Minute (00-59)
+  - `ss` - Second (00-59)
+  - `MM` - Month (01-12)
+  - `dd` - Day (01-31)
+  - `yyyy` - Year (4 digits)
+  
+  Example output: `14-30-45 03-09-2026` for March 9, 2026 at 2:30:45 PM
+  
+  See [SimpleDateFormat documentation](https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html) for all format options.
+</ParamField>
+
+## H2 Database Configuration
+
+<ParamField path="database.settings.h2.file-name" type="string" default="h2Database">
+  Name of the H2 database file (stored in the plugin folder).
+  
+  The full path will be: `plugins/ClansPlus/h2Database.mv.db`
+</ParamField>
+
+<ParamField path="database.settings.h2.table.clan" type="string" default="clandata">
+  Name of the database table storing clan information.
+</ParamField>
+
+<ParamField path="database.settings.h2.table.player" type="string" default="playerdata">
+  Name of the database table storing player information.
+</ParamField>
+
+## Example Configuration
+
+### H2 Database (Recommended)
+
+```yaml config.yml
+database:
+  type: H2
+  
+  smart-loading:
+    enabled: true
+    
+  fix-bug-database:
+    enabled: true
+    
+  auto-save:
+    enabled: true
+    seconds: 900  # Save every 15 minutes
+    
+  backup-settings:
+    file-name-date-format: 'HH-mm-ss MM-dd-yyyy'
+    
+  settings:
+    h2:
+      file-name: 'h2Database'
+      table:
+        clan: 'clandata'
+        player: 'playerdata'
+```
+
+### YAML Database
+
+```yaml config.yml
+database:
+  type: YAML
+  
+  smart-loading:
+    enabled: true
+    
+  fix-bug-database:
+    enabled: true
+    
+  auto-save:
+    enabled: true
+    seconds: 600  # Save every 10 minutes
+    
+  backup-settings:
+    file-name-date-format: 'HH-mm-ss MM-dd-yyyy'
+```
+
+## Transferring Between Database Types
+
+You can migrate data between YAML and H2 databases:
+
+### Step 1: Backup Current Data
+
+1. Stop your server
+2. Create a backup of your entire `plugins/ClansPlus/` folder
+3. Store the backup in a safe location
+
+### Step 2: Change Database Type
+
+1. Open `config.yml`
+2. Change the `database.type` setting to your desired type:
+   ```yaml
+   database:
+     type: H2  # Change from YAML to H2
+   ```
+
+### Step 3: Transfer Data
+
+<Note>
+ClansPlus does not include built-in migration tools. You'll need to use admin commands or manually transfer data.
+</Note>
+
+**Option 1: Fresh Start**
+- Start with the new database type
+- Clans will need to be recreated
+- Suitable for testing or starting over
+
+**Option 2: Admin Commands**
+- Some versions may support export/import commands
+- Check the plugin's admin commands with `/clanadmin help`
+- Contact the developer on Discord for migration assistance
+
+**Option 3: Third-Party Tools**
+- Community-created migration scripts may be available
+- Check the ClansPlus Discord community
+
+### Step 4: Test and Verify
+
+1. Start your server with the new database type
+2. Check console for any errors
+3. Verify clan data is accessible
+4. Test creating new clans
+5. Keep your backup until you're certain everything works
+
+<Warning>
+Always test database migrations on a development server first. Never migrate directly on a production server without a backup.
+</Warning>
+
+## Troubleshooting
+
+### Database File Location
+
+**H2 Database:**
+```
+plugins/ClansPlus/h2Database.mv.db
+plugins/ClansPlus/h2Database.trace.db (error logs)
+```
+
+**YAML Database:**
+```
+plugins/ClansPlus/data/clans/
+plugins/ClansPlus/data/players/
+```
+
+### Common Issues
+
+**"Database locked" errors:**
+- Another process is accessing the database
+- Check if multiple servers are using the same data folder
+- Ensure proper server shutdown
+
+**Slow performance:**
+- Enable `smart-loading` to reduce startup time
+- Consider switching from YAML to H2
+- Increase `auto-save.seconds` to reduce save frequency
+
+**Data corruption:**
+- Enable `fix-bug-database` to auto-repair
+- Restore from backup if issues persist
+- Report persistent issues on Discord
+
+**Missing data after restart:**
+- Check that auto-save is enabled
+- Verify database files exist and aren't empty
+- Check console logs for save errors
+
+## Best Practices
+
+1. **Use H2 Database** - Better performance and reliability
+2. **Enable Auto-Save** - Protects against crashes
+3. **Regular Backups** - Manually backup before major updates
+4. **Enable Smart Loading** - Faster server starts
+5. **Monitor Console** - Watch for database errors during startup
+6. **Test Changes** - Try configuration changes on a test server first
+
+<Note>
+For additional help, join the official ClansPlus Discord server: https://discord.gg/NWbTVddmBM
+</Note>

@@ -1,0 +1,262 @@
+---
+title: Clan Management
+description: Create and manage clans in ClansPlus
+icon: users
+---
+
+ClansPlus provides a comprehensive clan management system that allows players to create, join, and manage their own clans with customizable settings and permissions.
+
+## Creating a Clan
+
+Players can create their own clan using the `/clansplus create` command.
+
+<Steps>
+  <Step title="Choose a clan name">
+    Select a unique name that follows the server's naming rules. The name must:
+    - Meet minimum and maximum length requirements (configurable in `config.yml`)
+    - Not contain prohibited characters (spaces, `&`, and special characters)
+    - Not match any prohibited names set by the server
+  </Step>
+  
+  <Step title="Pay creation cost">
+    If enabled, creating a clan requires payment using one of these currency types:
+    - **Vault** - Server economy (requires Vault plugin)
+    - **PlayerPoints** - PlayerPoints plugin
+    - **WarPoint** - ClansPlus war points
+    
+    The cost is configured in `config.yml` under `clan-setting.create`.
+  </Step>
+  
+  <Step title="Automatic setup">
+    Upon creation, your clan is automatically configured with:
+    - You as the clan owner (LEADER rank)
+    - Default maximum members limit
+    - Default permission settings for all clan actions
+    - Empty skill levels (ready to upgrade)
+    - Creation date timestamp
+  </Step>
+</Steps>
+
+<Info>
+  The clan creation is announced to the server with a randomly selected broadcast message from `config.yml`.
+</Info>
+
+## Joining and Leaving Clans
+
+### Joining a Clan
+
+Players can join clans through invitation:
+
+1. A clan member with `INVITE` permission sends you an invitation: `/clansplus invite <player>`
+2. You receive the invitation notification
+3. Accept with `/clansplus accept` or reject with `/clansplus reject`
+4. Upon acceptance, you join as a MEMBER with the configured default permissions
+
+Your join date is recorded and visible in PlaceholderAPI placeholders.
+
+### Leaving a Clan
+
+Members can leave their clan at any time:
+
+```
+/clansplus leave
+```
+
+<Note>
+  The clan owner (LEADER) cannot leave the clan - they must either transfer ownership with `/clansplus setowner` or disband the clan entirely.
+</Note>
+
+## Member Management
+
+### Rank System
+
+ClansPlus uses a three-tier rank system defined in `com.cortezromeo.clansplus.api.enums.Rank`:
+
+- **LEADER** - Clan owner with full permissions
+- **MANAGER** - Trusted members with elevated permissions
+- **MEMBER** - Regular clan members
+
+### Managing Members
+
+**Inviting Players** (requires `INVITE` permission):
+```
+/clansplus invite <player>
+```
+
+**Kicking Members** (requires `KICK` permission):
+```
+/clansplus kick <member>
+```
+
+**Promoting to Manager** (requires `SETMANAGER` permission, usually LEADER only):
+```
+/clansplus setmanager <member>
+```
+
+**Demoting a Manager** (requires `REMOVEMANAGER` permission, usually LEADER only):
+```
+/clansplus removemanager <manager>
+```
+
+**Transferring Ownership** (LEADER only):
+```
+/clansplus setowner <member>
+```
+
+<Info>
+  All member management actions are logged with player data including join dates, last activity, and score collected.
+</Info>
+
+## Clan Settings and Customization
+
+### Custom Name
+
+Clans can set a formatted display name with color codes and formatting:
+
+```
+/clansplus setcustomname <name>
+```
+
+<Note>
+  Requires `clanplus.setcustomname` permission and the `SETCUSTOMNAME` clan permission.
+</Note>
+
+The custom name:
+- Supports Minecraft color codes (`&`) and hex colors
+- Is displayed in GUIs, chat, and PlaceholderAPI
+- Falls back to the original clan name if not set
+
+### Clan Message
+
+Set a message of the day (MOTD) that displays to members when they join:
+
+```
+/clansplus setmessage <message>
+```
+
+Requires the `SETMESSAGE` clan permission (configurable per-clan).
+
+### Clan Icon
+
+Customize your clan's icon in GUI menus:
+
+```
+/clansplus seticon
+```
+
+Supported icon types (from `com.cortezromeo.clansplus.api.enums.ItemType`):
+- **MATERIAL** - Minecraft material name
+- **BASE64** - Base64-encoded texture
+- **URL** - Direct texture URL
+- **MINECRAFT_HEADS** - Minecraft-heads.com integration
+
+Requires `clanplus.seticon` permission.
+
+### Clan Spawn
+
+Set a home location for your clan:
+
+```
+/clansplus setspawn
+```
+
+Teleport to clan spawn:
+```
+/clansplus spawn
+```
+
+<Note>
+  - Setting spawn requires `clanplus.setspawn` permission and the `SETSPAWN` clan permission
+  - Teleporting requires the `SPAWN` clan permission
+  - World blacklists can be configured in `config.yml` to prevent spawns in certain worlds
+  - Spawn can be disabled entirely in the config
+</Note>
+
+### Permission System
+
+Clan leaders can customize which rank is required for each action:
+
+```
+/clansplus setpermission
+```
+
+Configurable permissions (from `com.cortezromeo.clansplus.api.enums.Subject`):
+
+| Subject | Description | Default Rank |
+|---------|-------------|-------------|
+| INVITE | Invite players to clan | LEADER |
+| KICK | Kick members from clan | LEADER |
+| SETCUSTOMNAME | Set clan custom name | LEADER |
+| SETICON | Set clan icon | LEADER |
+| SPAWN | Teleport to clan spawn | MEMBER |
+| SETSPAWN | Set clan spawn point | LEADER |
+| SETMESSAGE | Set clan message | LEADER |
+| SETMANAGER | Promote member to manager | LEADER |
+| REMOVEMANAGER | Demote a manager | LEADER |
+| CHAT | Use clan chat | MEMBER |
+| UPGRADE | Upgrade clan skills/slots | MANAGER |
+| MANAGEALLY | Manage clan allies | MANAGER |
+| OPENSTORAGE | Access clan storage | MEMBER |
+
+<Info>
+  Default permissions can be forced server-wide by setting `clan-setting.permission.default.forced: true` in `config.yml`.
+</Info>
+
+## Ally System
+
+Clans can form alliances with other clans to prevent friendly fire and cooperate during war events.
+
+### Managing Allies
+
+**Send Ally Request** (requires `MANAGEALLY` permission):
+```
+/clansplus requestally <clan>
+```
+
+**Accept/Reject Ally Invitations**:
+Use the `/clansplus` menu to view and manage incoming ally requests.
+
+**Remove an Ally**:
+Access the ally management GUI through `/clansplus menu` to remove existing allies.
+
+### Ally Benefits
+
+- **PvP Protection**: Members of allied clans cannot damage each other during war events
+- **Coordination**: Allied clans can coordinate strategies during war events
+- **Visibility**: Allies are listed in clan information and PlaceholderAPI
+
+<Note>
+  Allies are stored in the clan data as a list of clan names. Breaking an alliance is mutual - both clans must agree or the alliance can be unilaterally broken.
+</Note>
+
+## Clan Information
+
+View detailed information about any clan:
+
+```
+/clansplus info <clan>
+```
+
+Displays:
+- Clan name and custom name (if set)
+- Owner and member count
+- Creation date
+- Current score and war points
+- Clan message
+- List of members with their ranks
+- Allied clans
+- Skill levels
+
+## Administrative Commands
+
+Server administrators with `clanplus.admin` permission have additional management tools:
+
+```
+/clansplusadmin setClanData <clan> <field> <value>
+/clansplusadmin setPlayerData <player> <field> <value>
+/clansplusadmin delete <clan>
+```
+
+<Info>
+  See the [API Reference](/api-reference) for programmatic clan management using the ClansPlus API.
+</Info>

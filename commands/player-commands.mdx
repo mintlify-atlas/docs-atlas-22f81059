@@ -1,0 +1,471 @@
+---
+title: "Player Commands"
+description: "Complete reference for all /clan player commands"
+---
+
+## Overview
+
+The `/clan` command (also accessible via `/clansplus`) is the main command for all players to create and manage their clans. This page documents all available subcommands, their permissions, and usage.
+
+<Note>
+  Each clan has its own internal permission system. Clan owners can configure which rank (Member, Manager, Leader) is required to use specific commands via the `/clan setpermission` command.
+</Note>
+
+## Command Aliases
+
+- `/clan`
+- `/clansplus`
+
+## General Commands
+
+These commands are available to all players, regardless of clan membership.
+
+### View Clan Menu
+
+```bash
+/clan
+/clan menu
+```
+
+Opens the main clan GUI menu. If you're not in a clan, it shows the clan creation menu. If you're in a clan, it displays your clan's management interface.
+
+**Permission:** None required
+
+### Create a Clan
+
+```bash
+/clan create <clan_name>
+```
+
+Creates a new clan with the specified name.
+
+**Permission:** None required  
+**Parameters:**
+- `<clan_name>` - The name for your new clan (no spaces or `&` characters allowed)
+
+**Example:**
+```bash
+/clan create Warriors
+```
+
+### Accept Clan Invitation
+
+```bash
+/clan accept
+```
+
+Accepts a pending clan invitation.
+
+**Permission:** None required
+
+### Reject Clan Invitation
+
+```bash
+/clan reject
+/clan deny
+```
+
+Rejects a pending clan invitation.
+
+**Permission:** None required
+
+### List All Clans
+
+```bash
+/clan list
+```
+
+Opens a GUI displaying all clans on the server.
+
+**Permission:** None required
+
+### View Clan Information
+
+```bash
+/clan info
+/clan info <clan_name>
+```
+
+Displays detailed information about your clan or a specified clan.
+
+**Permission:** None required  
+**Parameters:**
+- `<clan_name>` - (Optional) The name of the clan to view
+
+**Examples:**
+```bash
+/clan info              # View your own clan
+/clan info Warriors     # View the Warriors clan
+```
+
+### View Events
+
+```bash
+/clan event
+/clan event war
+```
+
+Opens the events menu or displays war event status.
+
+**Permission:** None required
+
+---
+
+## Member Commands
+
+These commands are available to clan members. The required rank can be configured by the clan owner.
+
+### Clan Chat
+
+```bash
+/clan chat
+/clan chat <message>
+```
+
+Toggles clan chat mode on/off, or sends a message to clan chat.
+
+**Default Permission:** Member  
+**Configurable:** Yes (via clan permission system)
+
+**Examples:**
+```bash
+/clan chat                    # Toggle clan chat mode
+/clan chat Hello everyone!    # Send a message to clan chat
+```
+
+### PvP Toggle
+
+```bash
+/clan pvp
+```
+
+Toggles PvP on/off for yourself with clan members and allies.
+
+**Permission:** None required (personal setting)
+
+### Teleport to Clan Spawn
+
+```bash
+/clan spawn
+```
+
+Teleports you to your clan's spawn point.
+
+**Default Permission:** Member  
+**Configurable:** Yes
+
+### Leave Clan
+
+```bash
+/clan leave
+```
+
+Leave your current clan. Only available to non-leaders.
+
+**Permission:** Must not be the clan leader
+
+### Invite Player
+
+```bash
+/clan invite <player_name>
+```
+
+Invites a player to join your clan.
+
+**Default Permission:** Manager  
+**Configurable:** Yes  
+**Parameters:**
+- `<player_name>` - The name of the player to invite
+
+**Example:**
+```bash
+/clan invite Steve
+```
+
+### Kick Member
+
+```bash
+/clan kick <player_name>
+```
+
+Removes a member from your clan.
+
+**Default Permission:** Manager  
+**Configurable:** Yes  
+**Parameters:**
+- `<player_name>` - The name of the member to kick
+
+**Example:**
+```bash
+/clan kick Alex
+```
+
+### Open Clan Storage
+
+```bash
+/clan openstorage <storage_number>
+```
+
+Opens the specified clan storage.
+
+**Default Permission:** Member  
+**Configurable:** Yes  
+**Parameters:**
+- `<storage_number>` - The storage number to open (1 to max storage)
+
+**Example:**
+```bash
+/clan openstorage 1
+```
+
+---
+
+## Manager Commands
+
+These commands typically require Manager rank or higher.
+
+### Set Custom Name
+
+```bash
+/clan setcustomname <custom_name>
+```
+
+Sets a custom display name for your clan with color codes and formatting.
+
+**Default Permission:** Manager  
+**Configurable:** Yes  
+**Server Permission:** `clanplus.setcustomname`  
+**Parameters:**
+- `<custom_name>` - The custom name (supports color codes and gradients)
+
+**Example:**
+```bash
+/clan setcustomname &b&lWarriors &7Clan
+```
+
+### Set Clan Message
+
+```bash
+/clan setmessage <message>
+```
+
+Sets the clan's message/description.
+
+**Default Permission:** Manager  
+**Configurable:** Yes  
+**Server Permission:** `clanplus.setmessage`  
+**Parameters:**
+- `<message>` - The clan message
+
+**Example:**
+```bash
+/clan setmessage Welcome to the Warriors!
+```
+
+### Set Clan Icon
+
+```bash
+/clan seticon
+/clan seticon <type> <value>
+```
+
+Opens the icon selection menu or sets the clan icon directly.
+
+**Default Permission:** Manager  
+**Configurable:** Yes  
+**Server Permission:** `clanplus.seticon`  
+**Parameters:**
+- `<type>` - Icon type: `MATERIAL`, `CUSTOMHEAD`, `PLAYERHEAD`, or `URL`
+- `<value>` - The material name, player name, head ID, or URL
+
+**Examples:**
+```bash
+/clan seticon                          # Open GUI
+/clan seticon MATERIAL DIAMOND_SWORD   # Set to diamond sword
+/clan seticon PLAYERHEAD Notch         # Set to Notch's head
+```
+
+### Set Manager
+
+```bash
+/clan setmanager <player_name>
+```
+
+Promotes a clan member to Manager rank.
+
+**Default Permission:** Manager  
+**Configurable:** Yes  
+**Parameters:**
+- `<player_name>` - The member to promote
+
+**Example:**
+```bash
+/clan setmanager Steve
+```
+
+### Remove Manager
+
+```bash
+/clan removemanager <player_name>
+```
+
+Demotes a manager back to Member rank.
+
+**Default Permission:** Manager  
+**Configurable:** Yes  
+**Parameters:**
+- `<player_name>` - The manager to demote
+
+**Example:**
+```bash
+/clan removemanager Steve
+```
+
+### Request Ally
+
+```bash
+/clan requestally <clan_name>
+```
+
+Sends an alliance request to another clan.
+
+**Default Permission:** Manager  
+**Configurable:** Yes  
+**Parameters:**
+- `<clan_name>` - The clan to request alliance with
+
+**Example:**
+```bash
+/clan requestally Knights
+```
+
+### Clan Upgrades
+
+```bash
+/clan upgrade
+```
+
+Opens the clan upgrade menu to upgrade skills and stats.
+
+**Default Permission:** Manager  
+**Configurable:** Yes
+
+---
+
+## Leader-Only Commands
+
+These commands can only be used by the clan owner/leader.
+
+### Set Spawn Point
+
+```bash
+/clan setspawn
+```
+
+Sets the clan spawn point to your current location.
+
+**Default Permission:** Manager  
+**Configurable:** Yes  
+**Server Permission:** `clanplus.setspawn`
+
+<Warning>
+  Spawn points cannot be set in blacklisted worlds. Check your server's configuration for restricted worlds.
+</Warning>
+
+### Clan Settings
+
+```bash
+/clan setting
+```
+
+Opens the clan settings menu.
+
+**Permission:** Leader only
+
+### Set Permissions
+
+```bash
+/clan setpermission
+```
+
+Opens the permission configuration menu to set which ranks can use specific commands.
+
+**Permission:** Leader only  
+**Server Permission:** `clanplus.setpermission`
+
+### Transfer Ownership
+
+```bash
+/clan setowner <player_name>
+```
+
+Transfers clan ownership to another member.
+
+**Permission:** Leader only  
+**Parameters:**
+- `<player_name>` - The member to make the new owner
+
+<Warning>
+  This action transfers full ownership of the clan to another member. Use with caution!
+</Warning>
+
+**Example:**
+```bash
+/clan setowner Steve
+```
+
+### Disband Clan
+
+```bash
+/clan disband
+```
+
+Permanently deletes your clan. Requires confirmation (run twice within 10 seconds).
+
+**Permission:** Leader only
+
+<Warning>
+  This action is permanent and cannot be undone. All clan data, storages, and progress will be lost.
+</Warning>
+
+---
+
+## Configurable Subjects
+
+The following subjects can have their required rank configured by the clan owner:
+
+| Subject | Description | Default Rank |
+|---------|-------------|-------------|
+| `INVITE` | Invite a player to clan | Manager |
+| `KICK` | Kick a member off of clan | Manager |
+| `SETCUSTOMNAME` | Set clan custom name | Manager |
+| `SETICON` | Set clan icon | Manager |
+| `SPAWN` | Teleport to clan spawn | Member |
+| `SETSPAWN` | Set clan spawn | Manager |
+| `SETMESSAGE` | Set clan message | Manager |
+| `SETMANAGER` | Promote member to a manager | Manager |
+| `REMOVEMANAGER` | Remove a manager from clan | Manager |
+| `CHAT` | Clan chat | Member |
+| `UPGRADE` | Upgrade clan | Manager |
+| `MANAGEALLY` | Send ally invite and manage clan's allies | Manager |
+| `OPENSTORAGE` | Open and manage clan storage | Member |
+
+<Note>
+  Clan leaders can customize these permissions using `/clan setpermission` to match their clan's management style.
+</Note>
+
+---
+
+## Additional Permissions
+
+Some commands require special server permissions in addition to clan rank:
+
+- `clanplus.setspawn` - Required to set clan spawn point
+- `clanplus.seticon` - Required to change clan icon
+- `clanplus.setpermission` - Required to modify clan permissions
+- `clanplus.setcustomname` - Required to set custom clan name
+- `clanplus.setmessage` - Required to set clan message
+
+<Tip>
+  Server administrators can grant these permissions to specific players or groups to control who can use advanced clan features.
+</Tip>

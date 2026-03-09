@@ -1,0 +1,190 @@
+---
+title: Basic Usage
+description: Getting started with the ClansPlus API
+---
+
+This guide covers the fundamentals of using the ClansPlus API in your plugin.
+
+## Checking if ClansPlus Exists
+
+Before using the API, you should verify that ClansPlus is installed and enabled on the server.
+
+```java
+@Override
+public void onEnable() {
+    if (Bukkit.getPluginManager().getPlugin("ClansPlus") == null) {
+        getLogger().severe("ClansPlus is not in the server!");
+        Bukkit.getPluginManager().disablePlugin(this);
+        return;
+    }
+}
+```
+
+<Warning>
+Always check for ClansPlus before initializing the API. If ClansPlus is not present, disable your plugin to prevent errors.
+</Warning>
+
+## Initializing the API
+
+Once you've verified ClansPlus exists, initialize the API using Bukkit's ServicesManager:
+
+```java
+ClanPlus clansPlusAPI = Bukkit.getServicesManager().getRegistration(ClanPlus.class).getProvider();
+```
+
+## Getting API Instances
+
+The ClansPlus API provides two main utility interfaces:
+
+### PluginDataManager
+
+Access clan and player data:
+
+```java
+ClanPlus.PluginDataManagerUtil dataManager = clansPlusAPI.getPluginDataManager();
+```
+
+### ClanManager
+
+Manage clan operations:
+
+```java
+ClanPlus.ClanManagerUtil clanManager = clansPlusAPI.getClanManager();
+```
+
+## Basic Data Access
+
+<Steps>
+
+<Step title="Check if a clan exists">
+
+```java
+String clanName = "HelloClan";
+boolean exists = clanManager.isClanExisted(clanName);
+
+if (exists) {
+    getLogger().info("Clan " + clanName + " exists!");
+}
+```
+
+</Step>
+
+<Step title="Check if a player is in a clan">
+
+```java
+String playerName = "Cortez_Romeo";
+boolean inClan = clanManager.isPlayerInClan(playerName);
+
+if (inClan) {
+    getLogger().info(playerName + " is in a clan!");
+}
+```
+
+You can also check using a Player object:
+
+```java
+Player player = Bukkit.getPlayer("Cortez_Romeo");
+if (player != null && clanManager.isPlayerInClan(player)) {
+    getLogger().info(player.getName() + " is in a clan!");
+}
+```
+
+</Step>
+
+<Step title="Get clan data">
+
+```java
+String clanName = "HelloClan";
+
+if (dataManager.getClanDatabase().containsKey(clanName)) {
+    IClanData clanData = dataManager.getClanDatabase(clanName);
+    
+    getLogger().info("Clan: " + clanData.getName());
+    getLogger().info("Owner: " + clanData.getOwner());
+    getLogger().info("Score: " + clanData.getScore());
+    getLogger().info("Members: " + clanData.getMembers().size());
+}
+```
+
+</Step>
+
+<Step title="Get player data">
+
+```java
+String playerName = "Cortez_Romeo";
+
+if (dataManager.getPlayerDatabase().containsKey(playerName)) {
+    IPlayerData playerData = dataManager.getPlayerDatabase(playerName);
+    
+    getLogger().info("Player: " + playerData.getPlayerName());
+    getLogger().info("Clan: " + playerData.getClan());
+    getLogger().info("Rank: " + playerData.getRank());
+    getLogger().info("Score Collected: " + playerData.getScoreCollected());
+}
+```
+
+</Step>
+
+</Steps>
+
+## Getting Clan Data by Player
+
+You can directly get a player's clan data:
+
+```java
+String playerName = "Cortez_Romeo";
+IClanData clanData = dataManager.getClanDatabaseByPlayerName(playerName);
+
+if (clanData != null) {
+    getLogger().info(playerName + " is in clan: " + clanData.getName());
+} else {
+    getLogger().info(playerName + " is not in a clan");
+}
+```
+
+## Error Handling
+
+Always check for null values and existence before accessing data:
+
+```java
+public void displayClanInfo(String playerName) {
+    // Check if player data exists
+    if (!dataManager.getPlayerDatabase().containsKey(playerName)) {
+        getLogger().warning("Player " + playerName + " not found in database");
+        return;
+    }
+    
+    // Get player data
+    IPlayerData playerData = dataManager.getPlayerDatabase(playerName);
+    
+    // Check if player is in a clan
+    if (playerData.getClan() == null) {
+        getLogger().info(playerName + " is not in a clan");
+        return;
+    }
+    
+    // Get clan data
+    IClanData clanData = dataManager.getClanDatabase(playerData.getClan());
+    
+    // Verify clan exists
+    if (clanData == null) {
+        getLogger().severe("Data inconsistency: Clan " + playerData.getClan() + " not found!");
+        return;
+    }
+    
+    // Safe to access clan data now
+    getLogger().info("Clan: " + clanData.getName());
+    getLogger().info("Members: " + clanData.getMembers().size());
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Clan Operations" icon="users" href="/api/examples/clan-operations">
+    Learn how to create and manage clans
+  </Card>
+  <Card title="Player Management" icon="user" href="/api/examples/player-management">
+    Learn how to manage players in clans
+  </Card>
+</CardGroup>

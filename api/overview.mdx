@@ -1,0 +1,129 @@
+---
+title: API Overview
+description: Introduction to the ClansPlus API for developers
+---
+
+## What is the ClansPlus API?
+
+The ClansPlus API provides a comprehensive interface for developers to integrate with and extend ClansPlus functionality in their own plugins. It allows you to programmatically manage clans, players, and access all core features of the ClansPlus plugin.
+
+## API Modules
+
+The ClansPlus project is organized into three main modules:
+
+### clansplus-api
+
+The core API module containing all public interfaces and enums. This is what you'll depend on in your projects. It includes:
+
+- Core interfaces (`ClanPlus`, `PluginDataManagerUtil`, `ClanManagerUtil`)
+- Data storage interfaces (`IClanData`, `IPlayerData`)
+- Enumerations (`Rank`, `Subject`, `SkillType`, `ItemType`, `DatabaseType`, `CurrencyType`)
+
+### clansplus-implement
+
+The implementation module that provides the concrete classes for the API interfaces. This is internal to ClansPlus and not directly accessed by developers.
+
+### clansplus-plugin
+
+The main plugin module that ties everything together and provides the Bukkit/Spigot plugin implementation.
+
+## When to Use the API
+
+You should use the ClansPlus API when you want to:
+
+- Create custom integrations with ClansPlus
+- Build addons or extensions for ClansPlus
+- Access clan data programmatically
+- Manage players and clans from your own plugin
+- Hook into ClansPlus features for custom functionality
+- Create custom clan management tools
+- Integrate ClansPlus with other plugins
+
+## Key Interfaces
+
+### ClanPlus
+
+The main entry point for the API. Provides access to:
+
+- `PluginDataManagerUtil` - Manages all clan and player data
+- `ClanManagerUtil` - Provides clan management utilities
+
+```java
+ClanPlus clansPlusAPI = Bukkit.getServicesManager()
+    .getRegistration(ClanPlus.class)
+    .getProvider();
+```
+
+### PluginDataManagerUtil
+
+Handles all database operations for clans and players:
+
+- Load and save clan/player data
+- Access clan and player databases
+- Transfer data between database types
+- Clear and delete data
+
+### ClanManagerUtil
+
+Provides utility methods for clan operations:
+
+- Check if clans/players exist
+- Send alerts to clan members
+- Add players to clans
+- Get clan statistics and rankings
+- Format clan names and messages
+- Manage clan storage and chat
+
+### IClanData
+
+Represents a clan's data with methods to get/set:
+
+- Basic info (name, custom name, owner, message)
+- Statistics (score, war points, warnings)
+- Members and allies
+- Spawn points and icons
+- Skill levels and permissions
+- Discord integration
+- Storage inventories
+
+### IPlayerData
+
+Represents a player's clan-related data:
+
+- Player identification (name, UUID)
+- Clan membership
+- Rank within clan (`LEADER`, `MANAGER`, `MEMBER`)
+- Join date and activity tracking
+- Score contributions
+
+## Core Enumerations
+
+### Rank
+
+Defines player ranks within a clan:
+- `LEADER` - Clan owner with full permissions
+- `MANAGER` - Elevated member with additional permissions
+- `MEMBER` - Standard clan member
+
+### Subject
+
+Defines permission subjects for clan activities:
+- `INVITE`, `KICK` - Member management
+- `SETCUSTOMNAME`, `SETICON`, `SETMESSAGE` - Clan customization
+- `SPAWN`, `SETSPAWN` - Spawn management
+- `SETMANAGER`, `REMOVEMANAGER` - Rank management
+- `CHAT` - Clan chat access
+- `UPGRADE` - Clan upgrades
+- `MANAGEALLY` - Alliance management
+- `OPENSTORAGE` - Storage access
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup Guide" icon="download" href="/api/setup">
+    Learn how to add ClansPlus API to your project
+  </Card>
+  <Card title="Examples" icon="code" href="/api/examples/basic-usage">
+    See practical examples of using the API
+  </Card>
+</CardGroup>

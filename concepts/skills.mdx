@@ -1,0 +1,408 @@
+---
+title: Skills
+description: Understanding the clan skill and upgrade system in ClansPlus
+icon: wand-magic-sparkles
+---
+
+The skill system allows clans to unlock and upgrade powerful abilities that provide advantages in combat and events.
+
+## Skill System Overview
+
+Clans can upgrade various skills that provide passive or active benefits to all clan members. Each skill has multiple levels, with increasing power at higher levels.
+
+### Skill Types
+
+ClansPlus supports two types of skills:
+
+```java
+public enum SkillType {
+    PLUGIN,      // Built-in plugin skills
+    MYTHICMOBS   // MythicMobs integration skills
+}
+```
+
+<CardGroup cols={2}>
+  <Card title="Plugin Skills" icon="plug">
+    Built-in skills provided by ClansPlus with configurable effects and activation rates.
+  </Card>
+  
+  <Card title="MythicMobs Skills" icon="dragon">
+    Integration with MythicMobs plugin for custom mob-based skills and effects.
+  </Card>
+</CardGroup>
+
+## Available Skills
+
+Based on the source code, ClansPlus includes four core plugin skills:
+
+### Critical Hit
+
+<Card title="Critical Hit" icon="burst">
+  Deal massive damage with a chance to trigger critical hits.
+  
+  **Source:** `CriticalHitSkill.java`
+  
+  **Effect:**
+  - Chance-based activation when attacking
+  - Increases damage dealt based on formula
+  - Visual explosion particle effect
+  - Configurable sound effect
+  
+  **Damage Formula:**
+  ```java
+  damage = evaluate(onHitDamageEvaluation.get(skillLevel)
+    .replace("%damage%", String.valueOf(event.getDamage())));
+  ```
+</Card>
+
+**Configuration per level:**
+- Activation rate (percentage chance)
+- Damage multiplier/formula
+- Sound and particle effects
+
+### Life Steal
+
+<Card title="Life Steal" icon="heart-pulse">
+  Restore health when dealing damage to enemies.
+  
+  **Source:** `LifeStealSkill.java`
+  
+  **Effect:**
+  - Chance-based activation on damage dealt
+  - Heals the attacker based on formula
+  - Will not exceed max health
+  - Happy villager particle effect
+  - Configurable sound effect
+  
+  **Heal Formula:**
+  ```java
+  revivingHealth = evaluate(healEvaluation.get(skillLevel)
+    .replace("%playerMaxHealth%", String.valueOf(damager.getMaxHealth())));
+  ```
+</Card>
+
+**Configuration per level:**
+- Activation rate (percentage chance)
+- Heal amount (can use player max health variable)
+- Sound and particle effects
+
+### Dodge
+
+<Card title="Dodge" icon="shield-halved">
+  Avoid incoming damage and potentially reflect it back to the attacker.
+  
+  **Source:** `DodgeSkill.java`
+  
+  **Effect:**
+  - Chance-based activation when taking damage
+  - Completely negates the incoming damage
+  - At higher levels, reflects damage back to attacker
+  - Configurable sound effect
+  
+  **Damage Reflection:**
+  ```java
+  // Activates at specific level
+  if (skillLevel >= levelDamageReflection)
+      damager.damage(evaluate(levelDamageEvaluation
+        .replace("%damage%", String.valueOf(event.getDamage()))));
+  ```
+</Card>
+
+**Configuration per level:**
+- Activation rate (percentage chance)
+- Damage reflection level threshold
+- Reflection damage formula
+- Sound effects
+
+### Boost Score
+
+<Card title="Boost Score" icon="chart-line">
+  Earn bonus points during war events.
+  
+  **Source:** `BoostScoreSkill.java`
+  
+  **Effect:**
+  - Adds bonus score when killing players or mobs during events
+  - Automatic activation (no chance-based trigger)
+  - Increases clan's war event score
+  - Announced to clan members
+  
+  **Score Bonus:**
+  ```java
+  bonusScore = boostScoreLevel.get(skillLevel);
+  totalScore = baseScore + bonusScore;
+  ```
+</Card>
+
+**Configuration per level:**
+- Bonus score amount per kill
+- Applies to both player and mob kills during events
+
+## Skill Data Structure
+
+Each skill is represented by a `SkillData` object:
+
+```java
+public abstract class SkillData {
+    protected int id;                              // Unique skill ID
+    protected SkillType skillType;                 // PLUGIN or MYTHICMOBS
+    protected boolean enabled;                     // Is skill active?
+    protected String name;                         // Display name
+    protected String description;                  // Description
+    protected String soundName;                    // Sound effect name
+    protected int soundPitch;                      // Sound pitch
+    protected int soundVolume;                     // Sound volume
+    protected HashMap<Integer, Double> rateToActivate;  // Level -> Chance %
+    
+    // Event handlers
+    public abstract boolean onDamage(SkillData skillData, EntityDamageByEntityEvent event);
+    public abstract boolean onDie(SkillData skillData, String killerName, String victimName, boolean isMob);
+}
+```
+
+## Skill Management
+
+Clans track their skill levels using a HashMap:
+
+```java
+HashMap<Integer, Integer> skillLevel;  // Skill ID -> Current Level
+```
+
+### Skill Registry
+
+The `SkillManager` maintains all registered skills:
+
+```java
+public class SkillManager {
+    public static HashMap<Integer, SkillData> skillData = new HashMap<>();
+    
+    public static int getSkillID(PluginSkill pluginSkill) {
+        return SkillsFile.get().getInt("plugin-skills." 
+            + pluginSkill.toString().toLowerCase() + ".ID");
+    }
+    
+    public static void registerPluginSkill(int pluginSkill, SkillData skillData) {
+        getSkillData().put(pluginSkill, skillData);
+    }
+}
+```
+
+### Plugin Skills Enum
+
+```java
+public enum PluginSkill {
+    CRITICAL_HIT,
+    LIFE_STEAL,
+    DODGE,
+    BOOST_SCORE
+}
+```
+
+## Upgrading Skills
+
+Clans can upgrade their skills through the upgrade system:
+
+<Steps>
+  <Step title="Access Upgrade Menu">
+    Members with the `UPGRADE` permission can open the upgrade interface.
+  </Step>
+  
+  <Step title="Select Skill">
+    Choose which skill to upgrade from the available options.
+  </Step>
+  
+  <Step title="Pay Cost">
+    Upgrading costs resources (configurable in the skills file).
+  </Step>
+  
+  <Step title="Level Up">
+    The skill level increases, providing stronger effects.
+  </Step>
+</Steps>
+
+<Note>
+Skill upgrades are clan-wide. All members benefit from the clan's skill levels automatically.
+</Note>
+
+## Skill Activation
+
+Skills activate automatically based on their trigger conditions:
+
+### During Combat
+
+```java
+// In war event damage handler
+for (int skillID : damagerClanData.getSkillLevel().keySet()) {
+    SkillData skillData = SkillManager.getSkillData().get(skillID);
+    if (skillData != null) {
+        if (SkillManager.getSkillID(PluginSkill.DODGE) != skillData.getId())
+            skillData.onDamage(skillData, event);
+    }
+}
+```
+
+### On Kill Events
+
+```java
+// Boost Score activation example
+public boolean onDieEvent(SkillData skillData, String killerName, 
+                          String victimName, boolean isMob) {
+    if (!skillData.isEnabled()) return false;
+    
+    Player killer = Bukkit.getPlayer(killerName);
+    IClanData killerClanData = PluginDataManager.getClanDatabaseByPlayerName(killer.getName());
+    
+    int skillLevel = killerClanData.getSkillLevel().get(skillData.getId());
+    
+    if (skillLevel > 0) {
+        // Add bonus score
+        int bonusScore = boostScoreLevel.get(skillLevel);
+        killerClanData.setScore(killerClanData.getScore() + bonusScore);
+        return true;
+    }
+    
+    return false;
+}
+```
+
+## Skill Configuration
+
+Skills are configured in the `skills.yml` file:
+
+```yaml
+plugin-skills:
+  critical_hit:
+    enabled: true
+    ID: 1
+    name: "&cCritical Hit"
+    description: "Deal massive damage"
+    activate-sound:
+      name: "ENTITY_PLAYER_ATTACK_CRIT"
+      pitch: 1
+      volume: 1
+    rate-to-activate:
+      level:
+        1: 10.0    # 10% chance at level 1
+        2: 15.0    # 15% chance at level 2
+        3: 20.0    # 20% chance at level 3
+    on-hit-damage:
+      level:
+        1: "%damage% * 1.5"   # 1.5x damage
+        2: "%damage% * 2.0"   # 2.0x damage
+        3: "%damage% * 2.5"   # 2.5x damage
+```
+
+<Warning>
+Skill formulas support mathematical expressions. Be careful with balance when configuring damage multipliers!
+</Warning>
+
+## Visual and Audio Effects
+
+Skills can have custom effects when they activate:
+
+### Particles
+
+```java
+// Critical Hit explosion
+victimLocation.getWorld().spawnParticle(
+    ClansPlus.nms.getParticle("EXPLOSION"), 
+    victimLocation, 2
+);
+
+// Life Steal happy villager
+damagerLocation.getWorld().spawnParticle(
+    ClansPlus.nms.getParticle("VILLAGER_HAPPY"), 
+    damagerLocation, 2
+);
+```
+
+### Sounds
+
+```java
+if (!skillData.getSoundName().equals(""))
+    location.getWorld().playSound(
+        location, 
+        ClansPlus.nms.createSound(skillData.getSoundName()), 
+        skillData.getSoundVolume(), 
+        skillData.getSoundPitch()
+    );
+```
+
+## Chance-Based Activation
+
+Most skills use a random chance system:
+
+```java
+double chanceToActivate = skillData.getRateToActivate().get(skillLevel) / 100;
+
+if (new Random().nextDouble() < chanceToActivate) {
+    // Skill activates!
+}
+```
+
+Higher skill levels typically have:
+- Higher activation rates
+- Stronger effects
+- Additional features (like damage reflection for Dodge)
+
+## Skill Permissions
+
+The `UPGRADE` subject controls who can upgrade clan skills:
+
+```java
+UPGRADE("Upgrade", "Upgrade clan")
+```
+
+Configure this permission to require LEADER, MANAGER, or MEMBER rank based on your preferences.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Balance" icon="scale-balanced">
+    - Test skill configurations thoroughly
+    - Balance activation rates with effect power
+    - Consider PvP impact
+    - Adjust based on server feedback
+  </Card>
+  
+  <Card title="Progression" icon="stairs">
+    - Make higher levels worthwhile
+    - Set reasonable upgrade costs
+    - Create clear progression paths
+    - Encourage skill diversity
+  </Card>
+  
+  <Card title="Events" icon="trophy">
+    - Skills are crucial in war events
+    - Boost Score directly impacts rankings
+    - Combat skills give PvP advantages
+    - Plan skill upgrades strategically
+  </Card>
+  
+  <Card title="Customization" icon="paintbrush">
+    - Customize skill names and descriptions
+    - Adjust sound effects to match your server
+    - Fine-tune activation rates
+    - Create unique skill combinations
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Events" icon="trophy" href="/concepts/events">
+    Learn how skills affect war events
+  </Card>
+  
+  <Card title="Configuration" icon="gear" href="/configuration/setup">
+    Configure skill settings
+  </Card>
+  
+  <Card title="Clans" icon="users" href="/concepts/clans">
+    Back to clan basics
+  </Card>
+  
+  <Card title="Commands" icon="terminal" href="/commands/player-commands">
+    View upgrade commands
+  </Card>
+</CardGroup>

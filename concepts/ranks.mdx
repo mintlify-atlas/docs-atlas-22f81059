@@ -1,0 +1,265 @@
+---
+title: Ranks
+description: Understanding clan hierarchy and permissions in ClansPlus
+icon: ranking-star
+---
+
+The rank system in ClansPlus defines the hierarchy within clans and determines what actions each member can perform.
+
+## Rank Hierarchy
+
+ClansPlus uses three distinct ranks defined in the `Rank` enum:
+
+```java
+public enum Rank {
+    LEADER, MANAGER, MEMBER
+}
+```
+
+<Steps>
+  <Step title="LEADER">
+    The highest rank in a clan. The clan owner has full control over all clan operations and can perform any action.
+  </Step>
+  
+  <Step title="MANAGER">
+    A trusted member promoted by the leader. Managers have elevated permissions and can help manage the clan.
+  </Step>
+  
+  <Step title="MEMBER">
+    The default rank for all clan members. Members have basic permissions as configured by the clan.
+  </Step>
+</Steps>
+
+## Rank Details
+
+### Leader (Owner)
+
+<Card title="LEADER" icon="crown">
+  The clan leader is the original creator or a member who was transferred ownership.
+  
+  **Capabilities:**
+  - Full access to all clan features
+  - Can promote/demote managers
+  - Can transfer ownership to another member
+  - Can disband the clan
+  - Configure all clan settings
+  - Manage permissions for each action
+</Card>
+
+**Leadership Transfer**: The clan owner can transfer leadership using the `SETOWNER` subject. This permanently changes the clan's owner.
+
+```java
+String owner;  // Stores the username of the clan leader
+```
+
+### Manager
+
+<Card title="MANAGER" icon="user-tie">
+  Managers are promoted by the clan leader to help with clan operations.
+  
+  **Capabilities:**
+  - Access to permissions configured for MANAGER rank
+  - Can perform most clan operations (based on permission settings)
+  - Cannot demote other managers or the leader
+  - Cannot disband the clan
+  - Cannot transfer ownership
+</Card>
+
+**Promotion**: Leaders can promote members using the `SETMANAGER` permission:
+
+```java
+// From Subject enum
+SETMANAGER("Set manager", "Promote member to a manager")
+```
+
+**Demotion**: Leaders can demote managers using the `REMOVEMANAGER` permission:
+
+```java
+// From Subject enum
+REMOVEMANAGER("Remove manager", "Remove a manager from clan")
+```
+
+### Member
+
+<Card title="MEMBER" icon="user">
+  The default rank assigned to all clan members when they join.
+  
+  **Capabilities:**
+  - Access to permissions configured for MEMBER rank
+  - Basic clan features (chat, viewing info, etc.)
+  - Can participate in clan events
+  - May have limited access to clan management features
+</Card>
+
+**Join Process**: When a player joins a clan, they automatically receive the MEMBER rank:
+
+```java
+playerData.setRank(Rank.MEMBER);
+playerData.setJoinDate(new Date().getTime());
+```
+
+## Permission System
+
+Each clan action (called a "Subject") can be configured to require a specific minimum rank.
+
+### How Permissions Work
+
+The permission system uses a `HashMap<Subject, Rank>` to map each action to its required rank:
+
+```java
+HashMap<Subject, Rank> subjectPermission;
+```
+
+For example, a clan might configure:
+- `INVITE` → `MANAGER` (only managers and leaders can invite)
+- `KICK` → `LEADER` (only the leader can kick members)
+- `CHAT` → `MEMBER` (everyone can use clan chat)
+
+### Permission Subjects
+
+Here are all the configurable permissions from the `Subject` enum:
+
+<AccordionGroup>
+  <Accordion title="Member Management" icon="users">
+    - **INVITE**: Invite a player to clan
+    - **KICK**: Kick a member off of clan
+    - **SETMANAGER**: Promote member to a manager
+    - **REMOVEMANAGER**: Remove a manager from clan
+  </Accordion>
+  
+  <Accordion title="Clan Customization" icon="paintbrush">
+    - **SETCUSTOMNAME**: Set clan custom name
+    - **SETICON**: Set clan icon
+    - **SETMESSAGE**: Set clan message
+  </Accordion>
+  
+  <Accordion title="Location & Teleportation" icon="location-dot">
+    - **SPAWN**: Teleport to clan spawn
+    - **SETSPAWN**: Set clan spawn
+  </Accordion>
+  
+  <Accordion title="Features" icon="star">
+    - **CHAT**: Clan chat
+    - **UPGRADE**: Upgrade clan
+    - **MANAGEALLY**: Send ally invite and manage clan's allies
+    - **OPENSTORAGE**: Open and manage clan storage
+  </Accordion>
+</AccordionGroup>
+
+## Rank Checking
+
+The plugin checks if a player has the required rank for an action using the `isPlayerRankSatisfied` method:
+
+```java
+public static boolean isPlayerRankSatisfied(String playerName, Rank requiredRank) {
+    if (!isPlayerInClan(playerName)) return false;
+    
+    IPlayerData playerData = PluginDataManager.getPlayerDatabase(playerName);
+    
+    if (playerData.getRank() == null) return false;
+    
+    // Leaders can do everything
+    if (playerData.getRank() == Rank.LEADER) return true;
+    
+    // Managers can do MEMBER actions
+    if (playerData.getRank().equals(Rank.MANAGER) && requiredRank == Rank.MEMBER) 
+        return true;
+    else 
+        return playerData.getRank() == requiredRank;
+}
+```
+
+<Note>
+Leaders automatically pass all permission checks. Managers can perform any action that requires MEMBER rank or MANAGER rank.
+</Note>
+
+## Player Data Structure
+
+Each player's clan membership is tracked with the following data:
+
+```java
+String playerName;        // Player's username
+String UUID;              // Player's unique ID
+String clan;              // Clan name (null if not in a clan)
+Rank rank;                // Player's rank in the clan
+long joinDate;            // When they joined the clan
+long scoreCollected;      // Personal score in events
+long lastActivated;       // Last activity timestamp
+```
+
+## Rank Display
+
+Ranks can be displayed in-game with custom formatting:
+
+```java
+public static String getFormatRank(Rank rank) {
+    if (rank == Rank.MANAGER) return Messages.RANK_DISPLAY_MANAGER;
+    if (rank == Rank.LEADER) return Messages.RANK_DISPLAY_LEADER;
+    return Messages.RANK_DISPLAY_MEMBER;
+}
+```
+
+This allows server administrators to customize how each rank appears in messages, menus, and displays.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="For Leaders" icon="crown">
+    - Choose managers carefully - they have significant power
+    - Configure permissions to match your clan's structure
+    - Set clear expectations for each rank
+    - Review permissions regularly
+  </Card>
+  
+  <Card title="For Managers" icon="user-tie">
+    - Respect the leader's decisions
+    - Help new members get started
+    - Don't abuse your elevated permissions
+    - Communicate with the leader about changes
+  </Card>
+  
+  <Card title="For Members" icon="user">
+    - Follow clan rules and guidelines
+    - Contribute to clan goals
+    - Ask managers or leaders if you need help
+    - Earn trust to potentially become a manager
+  </Card>
+  
+  <Card title="For Admins" icon="screwdriver-wrench">
+    - Configure default permissions in config files
+    - Balance power between ranks
+    - Consider your community's needs
+    - Document your server's clan policies
+  </Card>
+</CardGroup>
+
+## Migration Notes
+
+The plugin includes a migration system for older data:
+
+```java
+// playerName, clanName
+public static HashMap<String, String> managersFromOldData = new HashMap<>();
+```
+
+This ensures that managers from previous versions are properly converted to the new rank system.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Clans Overview" icon="users" href="/concepts/clans">
+    Learn about the clan system basics
+  </Card>
+  
+  <Card title="Permissions Config" icon="gear" href="/configuration/permissions">
+    Configure clan permissions
+  </Card>
+  
+  <Card title="Commands" icon="terminal" href="/commands/player-commands">
+    View rank-related commands
+  </Card>
+  
+  <Card title="Skills" icon="wand-magic-sparkles" href="/concepts/skills">
+    Discover clan skills and upgrades
+  </Card>
+</CardGroup>

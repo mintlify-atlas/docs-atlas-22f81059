@@ -1,0 +1,477 @@
+---
+title: 'Permissions'
+description: 'Permission nodes and subject-based permission system'
+icon: 'key'
+---
+
+## Overview
+
+ClansPlus uses a two-tier permission system:
+
+1. **Plugin Permissions** - Traditional permission nodes for server permissions plugins (LuckPerms, PermissionsEx, etc.)
+2. **Subject Permissions** - Internal rank-based permissions controlling what clan members can do
+
+## Plugin Permission Nodes
+
+These permissions are granted to players via your server's permissions plugin.
+
+### Player Commands
+
+Basic clan commands available to all players:
+
+```yaml
+clansplus.command.clan.create      # Create a new clan
+clansplus.command.clan.accept      # Accept clan invitation
+clansplus.command.clan.reject      # Reject clan invitation
+clansplus.command.clan.info        # View clan information
+clansplus.command.clan.list        # List all clans
+clansplus.command.clan.event       # View war events
+```
+
+### Member Commands
+
+Commands for players in a clan:
+
+```yaml
+clansplus.command.clan.menu        # Open clan GUI
+clansplus.command.clan.leave       # Leave your clan
+clansplus.command.clan.chat        # Toggle clan chat
+clansplus.command.clan.pvp         # Toggle clan PVP
+clansplus.command.clan.setting     # Open clan settings
+clansplus.command.clan.spawn       # Teleport to clan spawn
+clansplus.command.clan.upgrade     # Open upgrade menu
+clansplus.command.clan.storage     # Access clan storage
+```
+
+### Management Commands
+
+Commands typically restricted to managers and leaders:
+
+```yaml
+clansplus.command.clan.invite      # Invite players to clan
+clansplus.command.clan.kick        # Kick members from clan
+clansplus.command.clan.seticon     # Change clan icon
+clansplus.command.clan.setcustomname  # Set clan custom name
+clansplus.command.clan.setmessage  # Set clan announcement
+clansplus.command.clan.setspawn    # Set clan spawn point
+clansplus.command.clan.ally        # Manage allies
+```
+
+### Leader Commands
+
+Commands restricted to clan leaders:
+
+```yaml
+clansplus.command.clan.disband        # Disband the clan
+clansplus.command.clan.setowner       # Transfer leadership
+clansplus.command.clan.setpermission  # Manage subject permissions
+clansplus.command.clan.setmanager     # Promote to manager
+clansplus.command.clan.removemanager  # Demote from manager
+```
+
+### Admin Commands
+
+Administrative commands for server staff:
+
+```yaml
+clansplus.command.clanadmin.*          # All admin commands
+clansplus.command.clanadmin.reload     # Reload plugin configuration
+clansplus.command.clanadmin.debug      # Enable debug mode
+clansplus.command.clanadmin.backup     # Create data backup
+clansplus.command.clanadmin.help       # View admin command help
+```
+
+### Bypass Permissions
+
+Permissions that bypass certain restrictions:
+
+```yaml
+clansplus.bypass.cooldown       # Bypass command cooldowns
+clansplus.bypass.cost           # Bypass currency costs
+clansplus.bypass.world          # Bypass world restrictions
+```
+
+## Subject Permission System
+
+Subject permissions control what clan members can do based on their rank. These are configured **per-clan** and managed by clan leaders.
+
+### Ranks
+
+ClansPlus has three ranks with hierarchical permissions:
+
+<ParamField path="LEADER" type="rank">
+  Highest rank. Has all permissions by default.
+  
+  - One leader per clan
+  - Can transfer leadership with `/clan setowner`
+  - Cannot be kicked from the clan
+  - Can manage all permissions
+</ParamField>
+
+<ParamField path="MANAGER" type="rank">
+  Middle management rank.
+  
+  - Multiple managers allowed
+  - Has permissions set to MANAGER or MEMBER
+  - Can be promoted/demoted by the leader
+  - Typically handles invites and kicks
+</ParamField>
+
+<ParamField path="MEMBER" type="rank">
+  Basic clan member rank.
+  
+  - Default rank for new members
+  - Has only permissions set to MEMBER
+  - Limited management capabilities
+  - Focus on clan participation
+</ParamField>
+
+### Permission Hierarchy
+
+Permissions follow a hierarchical system:
+
+```
+LEADER > MANAGER > MEMBER
+```
+
+- If MEMBER has a permission, MANAGER and LEADER also have it
+- If MANAGER has a permission, LEADER also has it
+- LEADER always has all permissions
+
+<Note>
+This hierarchy means setting a permission to MEMBER grants it to all ranks, while setting it to LEADER restricts it to only the leader.
+</Note>
+
+### Available Subjects
+
+Each subject represents an action that can be controlled:
+
+<ParamField path="INVITE" type="subject" default="MANAGER">
+  Invite players to the clan.
+  
+  ```yaml
+  permission-default:
+    INVITE: MANAGER
+  ```
+</ParamField>
+
+<ParamField path="KICK" type="subject" default="MANAGER">
+  Kick members out of the clan.
+  
+  <Warning>
+  Cannot kick players of equal or higher rank. Leaders cannot be kicked.
+  </Warning>
+  
+  ```yaml
+  permission-default:
+    KICK: MANAGER
+  ```
+</ParamField>
+
+<ParamField path="SETCUSTOMNAME" type="subject" default="LEADER">
+  Change the clan's custom display name with color codes.
+  
+  ```yaml
+  permission-default:
+    SETCUSTOMNAME: LEADER
+  ```
+</ParamField>
+
+<ParamField path="SETICON" type="subject" default="LEADER">
+  Change the clan's icon displayed in menus.
+  
+  ```yaml
+  permission-default:
+    SETICON: LEADER
+  ```
+</ParamField>
+
+<ParamField path="SPAWN" type="subject" default="MEMBER">
+  Teleport to the clan's spawn point.
+  
+  ```yaml
+  permission-default:
+    SPAWN: MEMBER
+  ```
+</ParamField>
+
+<ParamField path="SETSPAWN" type="subject" default="LEADER">
+  Set the clan's spawn point location.
+  
+  ```yaml
+  permission-default:
+    SETSPAWN: LEADER
+  ```
+</ParamField>
+
+<ParamField path="SETMESSAGE" type="subject" default="LEADER">
+  Set the clan's announcement message.
+  
+  ```yaml
+  permission-default:
+    SETMESSAGE: LEADER
+  ```
+</ParamField>
+
+<ParamField path="SETMANAGER" type="subject" default="LEADER">
+  Promote clan members to manager rank.
+  
+  <Note>
+  Only the leader can promote/demote managers by default.
+  </Note>
+  
+  ```yaml
+  permission-default:
+    SETMANAGER: LEADER
+  ```
+</ParamField>
+
+<ParamField path="REMOVEMANAGER" type="subject" default="LEADER">
+  Remove manager rank from clan members.
+  
+  ```yaml
+  permission-default:
+    REMOVEMANAGER: LEADER
+  ```
+</ParamField>
+
+<ParamField path="CHAT" type="subject" default="MEMBER">
+  Use clan chat to communicate with clan members.
+  
+  ```yaml
+  permission-default:
+    CHAT: MEMBER
+  ```
+</ParamField>
+
+<ParamField path="UPGRADE" type="subject" default="MANAGER">
+  Upgrade clan features like max members, skills, and storage.
+  
+  ```yaml
+  permission-default:
+    UPGRADE: MANAGER
+  ```
+</ParamField>
+
+<ParamField path="MANAGEALLY" type="subject" default="MANAGER">
+  Send ally requests and manage clan allies.
+  
+  ```yaml
+  permission-default:
+    MANAGEALLY: MANAGER
+  ```
+</ParamField>
+
+<ParamField path="OPENSTORAGE" type="subject" default="MEMBER">
+  Open and manage clan storage inventories.
+  
+  ```yaml
+  permission-default:
+    OPENSTORAGE: MEMBER
+  ```
+</ParamField>
+
+## Default Permissions
+
+Set default permissions for all new clans in `config.yml`:
+
+```yaml config.yml
+clan-settings:
+  creating-clan-settings:
+    permission-default:
+      INVITE: MANAGER
+      KICK: MANAGER
+      SETCUSTOMNAME: LEADER
+      SETICON: LEADER
+      SPAWN: MEMBER
+      SETSPAWN: LEADER
+      SETMESSAGE: LEADER
+      SETMANAGER: LEADER
+      REMOVEMANAGER: LEADER
+      CHAT: MEMBER
+      UPGRADE: MANAGER
+      MANAGEALLY: MANAGER
+      OPENSTORAGE: MEMBER
+```
+
+### Forced Default Permissions
+
+<ParamField path="clan-settings.permission-default-forced" type="boolean" default="false">
+  Force all clans to use the default permissions.
+  
+  When enabled:
+  - All clan permissions are set to the defaults
+  - Clans cannot change their permissions
+  - The `/clan setpermission` command is disabled
+  
+  <Warning>
+  This removes permission customization from clan leaders. Only enable if you want strict, server-wide permission control.
+  </Warning>
+  
+  ```yaml config.yml
+  clan-settings:
+    permission-default-forced: false
+  ```
+</ParamField>
+
+## Managing Clan Permissions
+
+### In-Game Management
+
+Clan leaders can manage permissions through the GUI:
+
+1. Open clan menu: `/clan menu`
+2. Click on "Settings" (gear icon)
+3. Click on "Set Permissions"
+4. Click on any subject to change its required rank
+5. Select new rank: MEMBER, MANAGER, or LEADER
+
+Or use the command:
+```
+/clan setpermission
+```
+
+### Permission Examples
+
+**Democratic Clan (More Permissions to Members):**
+```yaml
+permission-default:
+  INVITE: MEMBER        # Anyone can invite
+  KICK: MANAGER         # Managers can kick
+  SPAWN: MEMBER         # Everyone can teleport
+  SETSPAWN: MANAGER     # Managers set spawn
+  CHAT: MEMBER          # Everyone can chat
+  UPGRADE: MEMBER       # Everyone can upgrade
+  MANAGEALLY: MANAGER   # Managers handle allies
+  OPENSTORAGE: MEMBER   # Everyone accesses storage
+```
+
+**Strict Hierarchy (Restricted Permissions):**
+```yaml
+permission-default:
+  INVITE: LEADER        # Only leader invites
+  KICK: LEADER          # Only leader kicks
+  SPAWN: MEMBER         # Everyone can teleport
+  SETSPAWN: LEADER      # Only leader sets spawn
+  CHAT: MEMBER          # Everyone can chat
+  UPGRADE: LEADER       # Only leader upgrades
+  MANAGEALLY: LEADER    # Only leader manages allies
+  OPENSTORAGE: MANAGER  # Managers+ access storage
+```
+
+**Balanced Setup (Default):**
+```yaml
+permission-default:
+  INVITE: MANAGER       # Managers can invite
+  KICK: MANAGER         # Managers can kick
+  SPAWN: MEMBER         # Everyone can teleport
+  SETSPAWN: LEADER      # Leader sets spawn
+  CHAT: MEMBER          # Everyone can chat
+  UPGRADE: MANAGER      # Managers can upgrade
+  MANAGEALLY: MANAGER   # Managers handle allies
+  OPENSTORAGE: MEMBER   # Everyone accesses storage
+```
+
+## Permission Plugin Setup
+
+Example configurations for popular permission plugins:
+
+### LuckPerms
+
+```bash
+# Default player permissions
+/lp group default permission set clansplus.command.clan.create true
+/lp group default permission set clansplus.command.clan.accept true
+/lp group default permission set clansplus.command.clan.info true
+/lp group default permission set clansplus.command.clan.list true
+
+# Admin permissions
+/lp group admin permission set clansplus.command.clanadmin.* true
+/lp group admin permission set clansplus.bypass.* true
+
+# VIP bypass cooldowns
+/lp group vip permission set clansplus.bypass.cooldown true
+```
+
+### PermissionsEx (Legacy)
+
+```yaml permissions.yml
+groups:
+  default:
+    permissions:
+      - clansplus.command.clan.create
+      - clansplus.command.clan.accept
+      - clansplus.command.clan.info
+      - clansplus.command.clan.list
+      
+  admin:
+    permissions:
+      - clansplus.command.clanadmin.*
+      - clansplus.bypass.*
+```
+
+### GroupManager
+
+```yaml groups.yml
+groups:
+  Default:
+    permissions:
+      - clansplus.command.clan.create
+      - clansplus.command.clan.accept
+      - clansplus.command.clan.info
+      - clansplus.command.clan.list
+      
+  Admin:
+    permissions:
+      - clansplus.command.clanadmin.*
+      - clansplus.bypass.*
+```
+
+## Checking Permissions
+
+Players can check what they can do:
+
+```
+/clan menu → Settings → Permissions
+```
+
+This displays which rank is required for each action.
+
+## Troubleshooting
+
+### Permission Not Working
+
+1. **Check Plugin Permissions** - Verify the player has the command permission node
+2. **Check Clan Rank** - Verify the player's rank in the clan
+3. **Check Subject Permissions** - View clan permissions in settings GUI
+4. **Check Forced Default** - If enabled, permissions cannot be changed per-clan
+
+### Commands Not Available
+
+- Missing permission node from permissions plugin
+- Use `/lp user <player> permission check clansplus.command.clan.create` to test
+
+### Cannot Change Permissions
+
+- Only the clan leader can change permissions (unless forced defaults are enabled)
+- Check `permission-default-forced` in config.yml
+
+### Managers Can Do Leader Actions
+
+- Remember the hierarchy: LEADER > MANAGER > MEMBER
+- If you set a permission to MANAGER, the leader also has it
+- This is intentional design
+
+## Best Practices
+
+1. **Grant Basic Permissions** - Give all players access to create and join clans
+2. **Restrict Admin Commands** - Only give `clanadmin.*` to trusted staff
+3. **Document Your Setup** - Keep notes on which groups have which permissions
+4. **Test Changes** - Test permission changes on a test server first
+5. **Use Wildcards Carefully** - Avoid `clansplus.*` unless you want all permissions
+6. **Balance Subject Permissions** - Consider your server culture when setting defaults
+7. **Communicate Changes** - Let players know if you change forced defaults
+
+<Note>
+For a complete list of all permission nodes, use `/clanadmin debug` or check the plugin's source code.
+</Note>

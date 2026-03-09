@@ -1,0 +1,343 @@
+---
+title: Installation
+description: Step-by-step guide to installing ClansPlus on your Minecraft server
+---
+
+## Prerequisites
+
+Before installing ClansPlus, ensure your server meets the requirements:
+
+<Note>
+- **Server Software**: Spigot, Paper, or Folia (1.16+)
+- **Java Version**: Java 11 or newer
+- **API Version**: 1.16+
+</Note>
+
+## Installation Steps
+
+<Steps>
+  <Step title="Download ClansPlus">
+    Download the latest version of ClansPlus from the official source:
+    
+    - SpigotMC Resource Page
+    - GitHub Releases
+    
+    Ensure you download the `.jar` file compatible with your server version.
+  </Step>
+
+  <Step title="Install the Plugin">
+    Place the ClansPlus JAR file into your server's `plugins` folder:
+    
+    ```bash
+    /your-server-directory/plugins/ClansPlus.jar
+    ```
+    
+    <Warning>
+    Do not rename the JAR file, as this may cause issues with updates and dependencies.
+    </Warning>
+  </Step>
+
+  <Step title="Install Dependencies (Optional)">
+    For full functionality, install these optional soft dependencies:
+    
+    **For Economy Support:**
+    - Download [Vault](https://www.spigotmc.org/resources/vault.34315/) (for Spigot/Paper)
+    - OR [VaultUnlocked](https://www.spigotmc.org/resources/vaultunlocked.117277/) (for Folia)
+    - Install an economy plugin (EssentialsX, BetterEconomy, etc.)
+    
+    **For Alternative Currency:**
+    - Download [PlayerPoints](https://www.spigotmc.org/resources/playerpoints.80745/)
+    
+    **For Placeholders:**
+    - Download [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/)
+    
+    Place all dependency JARs in your `plugins` folder alongside ClansPlus.
+    
+    <Note>
+    **Folia Users**: Use VaultUnlocked instead of Vault to prevent errors. BetterEconomy is recommended for the economy plugin.
+    </Note>
+  </Step>
+
+  <Step title="Start Your Server">
+    Start or restart your Minecraft server to load ClansPlus:
+    
+    ```bash
+    java -jar server.jar
+    ```
+    
+    Watch the console for ClansPlus initialization messages:
+    
+    ```
+    [ClansPlus] Loading ClansPlus v3.0
+    [ClansPlus] Loaded config.yml
+    [ClansPlus] Version: 3.0
+    [ClansPlus] Author: Cortez_Romeo
+    ```
+    
+    The plugin will generate configuration files in `plugins/ClansPlus/`.
+  </Step>
+
+  <Step title="Verify Installation">
+    Check that ClansPlus loaded successfully:
+    
+    **In Console:**
+    ```
+    [ClansPlus] Support:
+    [SUPPORTED] Vault
+    [SUPPORTED] PlaceholderAPI
+    [SUPPORTED] PlayerPoints
+    ```
+    
+    **In Game:**
+    ```
+    /clan
+    ```
+    
+    You should see the ClansPlus command menu or GUI.
+  </Step>
+</Steps>
+
+## Initial Configuration
+
+After installation, configure ClansPlus to match your server's needs.
+
+### Main Configuration File
+
+The main configuration file is located at:
+```
+plugins/ClansPlus/config.yml
+```
+
+### Essential Settings
+
+<CodeGroup>
+```yaml config.yml - Language
+# Set your preferred language
+# Options: en (English), vi (Vietnamese)
+language: en
+```
+
+```yaml config.yml - Database
+# Configure database type
+database:
+  # Options: YAML, H2
+  # H2 is recommended for better performance
+  type: H2
+  
+  # Smart loading improves startup time
+  smart-loading:
+    enabled: true
+  
+  # Auto-save interval in seconds
+  auto-save:
+    enabled: true
+    seconds: 900
+```
+
+```yaml config.yml - Clan Creation
+# Configure clan creation requirements
+clan-settings:
+  creating-clan-settings:
+    # Cost to create a clan
+    currency-requirement:
+      enabled: true
+      type: VAULT  # or PLAYERPOINTS
+      value: 1000
+    
+    # Default maximum members
+    maximum-member-default: 5
+    
+    # Default clan icon
+    icon-default:
+      type: MATERIAL
+      value: ITEM_FRAME
+```
+
+```yaml config.yml - Economy
+# Choose your currency type
+clan-settings:
+  creating-clan-settings:
+    currency-requirement:
+      enabled: true
+      type: VAULT  # VAULT or PLAYERPOINTS
+      value: 1000  # Cost to create clan
+```
+</CodeGroup>
+
+### Database Configuration
+
+ClansPlus supports two database types:
+
+<Tabs>
+  <Tab title="H2 Database (Recommended)">
+    **Recommended for most servers** - Better performance with large player bases.
+    
+    ```yaml config.yml
+    database:
+      type: H2
+      settings:
+        h2:
+          file-name: 'h2Database'
+          table:
+            clan: 'clandata'
+            player: 'playerdata'
+    ```
+    
+    <Note>
+    H2 database files are stored in `plugins/ClansPlus/h2Database.mv.db`
+    </Note>
+  </Tab>
+  
+  <Tab title="YAML">
+    **Simpler but slower** - Good for small servers or testing.
+    
+    ```yaml config.yml
+    database:
+      type: YAML
+    ```
+    
+    Data files are stored in:
+    - `plugins/ClansPlus/clans/`
+    - `plugins/ClansPlus/players/`
+  </Tab>
+</Tabs>
+
+<Warning>
+**Important**: After changing database type, restart your server. Use `/clanadmin transferPluginDatabaseType` to migrate existing data between database types.
+</Warning>
+
+### Configure Permissions
+
+Grant admin permissions to manage ClansPlus:
+
+```yaml permissions.yml
+permissions:
+  clanplus.admin:
+    description: Full access to ClansPlus admin commands
+    default: op
+```
+
+**Optional Permissions:**
+- `clanplus.setspawn` - Allow setting clan spawn points
+- `clanplus.seticon` - Allow setting custom clan icons
+- `clanplus.setcustomname` - Allow custom clan names with colors
+- `clanplus.setmessage` - Allow setting clan messages
+- `clanplus.setpermission` - Allow customizing clan permissions
+
+### Soft Dependencies Setup
+
+If you installed optional dependencies:
+
+<Steps>
+  <Step title="Vault/VaultUnlocked + Economy">
+    Install Vault (or VaultUnlocked for Folia) and an economy plugin:
+    
+    1. Install Vault/VaultUnlocked
+    2. Install economy plugin (EssentialsX, CMI, BetterEconomy, etc.)
+    3. Restart server
+    4. Verify in console:
+    ```
+    [ClansPlus] [SUPPORTED] Vault
+    ```
+  </Step>
+  
+  <Step title="PlayerPoints">
+    For alternative point-based currency:
+    
+    1. Install PlayerPoints
+    2. Configure in `config.yml`:
+    ```yaml
+    currency-requirement:
+      type: PLAYERPOINTS
+      value: 1000
+    ```
+  </Step>
+  
+  <Step title="PlaceholderAPI">
+    For clan placeholders in other plugins:
+    
+    1. Install PlaceholderAPI
+    2. Restart server
+    3. Use placeholders like `%clanplus_clan_name%`
+    
+    <Note>
+    See the API documentation for a full list of available placeholders.
+    </Note>
+  </Step>
+</Steps>
+
+## File Structure
+
+After installation, ClansPlus creates the following structure:
+
+```
+plugins/ClansPlus/
+├── config.yml              # Main configuration
+├── events.yml              # Clan war event settings
+├── skills.yml              # Skill configurations
+├── upgrade.yml             # Upgrade costs and settings
+├── inventories/            # GUI inventory configs
+│   ├── clan-menu-inventory.yml
+│   ├── member-list-inventory.yml
+│   └── ...
+├── languages/              # Language files
+│   ├── language_en.yml
+│   └── language_vi.yml
+├── backup/                 # Database backups
+└── h2Database.mv.db        # H2 database file (if using H2)
+```
+
+## Verification
+
+Test your installation:
+
+1. **Join your server** as a player
+2. **Run command**: `/clan`
+3. **Expected result**: ClansPlus GUI opens or command help displays
+
+<Note>
+If you see "You must be in a clan to do this," the plugin is working correctly!
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="ClansPlus doesn't load">
+    - Check you're using Java 11 or newer: `java -version`
+    - Verify server is Spigot/Paper/Folia, not Bukkit
+    - Check console for error messages
+    - Ensure the JAR file is in the `plugins` folder
+  </Accordion>
+  
+  <Accordion title="Vault not detected (Folia servers)">
+    Folia servers must use VaultUnlocked instead of Vault:
+    
+    1. Remove Vault from plugins folder
+    2. Install VaultUnlocked
+    3. Install BetterEconomy or compatible economy plugin
+    4. Restart server
+  </Accordion>
+  
+  <Accordion title="Database errors on startup">
+    If you see database errors:
+    
+    1. Stop the server
+    2. In `config.yml`, set `fix-bug-database: enabled: true`
+    3. Start the server
+    4. Check console for resolved issues
+  </Accordion>
+  
+  <Accordion title="Commands not working">
+    - Verify you have permission: `clanplus.admin` for admin commands
+    - Check if another plugin conflicts with `/clan` command
+    - Try aliases: `/clansplus`, `/guild`, `/team`
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that ClansPlus is installed, learn how to create your first clan!
+
+<Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+  Create your first clan and explore basic features
+</Card>

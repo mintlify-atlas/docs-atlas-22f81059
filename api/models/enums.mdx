@@ -1,0 +1,322 @@
+---
+title: 'Enums'
+description: 'Enumeration types used throughout the ClansPlus API'
+---
+
+## Overview
+
+This page documents all enumeration types used in the ClansPlus API for type-safe configuration and data management.
+
+## Rank
+
+Defines the hierarchy of roles within a clan.
+
+**Package:** `com.cortezromeo.clansplus.api.enums.Rank`
+
+### Values
+
+<ResponseField name="LEADER" type="Rank">
+  The clan owner with full permissions. Only one leader per clan.
+</ResponseField>
+
+<ResponseField name="MANAGER" type="Rank">
+  A clan administrator with elevated permissions. Multiple managers can exist.
+</ResponseField>
+
+<ResponseField name="MEMBER" type="Rank">
+  A regular clan member with basic permissions.
+</ResponseField>
+
+### Usage Example
+
+```java
+import com.cortezromeo.clansplus.api.enums.Rank;
+import com.cortezromeo.clansplus.api.storage.IPlayerData;
+
+IPlayerData playerData = clansPlusAPI.getPlayerData(uuid);
+
+// Check player rank
+if (playerData.getRank() == Rank.LEADER) {
+    System.out.println("Player is the clan leader");
+}
+
+// Promote to manager
+playerData.setRank(Rank.MANAGER);
+```
+
+---
+
+## Subject
+
+Represents different permissions/actions that can be restricted by rank.
+
+**Package:** `com.cortezromeo.clansplus.api.enums.Subject`
+
+### Values
+
+<ResponseField name="INVITE" type="Subject">
+  **Name:** "Invite"  
+  **Description:** Invite a player to clan
+</ResponseField>
+
+<ResponseField name="KICK" type="Subject">
+  **Name:** "Kick"  
+  **Description:** Kick a member off of clan
+</ResponseField>
+
+<ResponseField name="SETCUSTOMNAME" type="Subject">
+  **Name:** "Set custom name"  
+  **Description:** Set clan custom name
+</ResponseField>
+
+<ResponseField name="SETICON" type="Subject">
+  **Name:** "Set icon"  
+  **Description:** Set clan icon
+</ResponseField>
+
+<ResponseField name="SPAWN" type="Subject">
+  **Name:** "Spawn"  
+  **Description:** Teleport to clan spawn
+</ResponseField>
+
+<ResponseField name="SETSPAWN" type="Subject">
+  **Name:** "Set spawn"  
+  **Description:** Set clan spawn
+</ResponseField>
+
+<ResponseField name="SETMESSAGE" type="Subject">
+  **Name:** "Set message"  
+  **Description:** Set clan message
+</ResponseField>
+
+<ResponseField name="SETMANAGER" type="Subject">
+  **Name:** "Set manager"  
+  **Description:** Promote member to a manager
+</ResponseField>
+
+<ResponseField name="REMOVEMANAGER" type="Subject">
+  **Name:** "Remove manager"  
+  **Description:** Remove a manager from clan
+</ResponseField>
+
+<ResponseField name="CHAT" type="Subject">
+  **Name:** "Chat"  
+  **Description:** Clan chat
+</ResponseField>
+
+<ResponseField name="UPGRADE" type="Subject">
+  **Name:** "Upgrade"  
+  **Description:** Upgrade clan
+</ResponseField>
+
+<ResponseField name="MANAGEALLY" type="Subject">
+  **Name:** "Manage ally"  
+  **Description:** Send ally invite and manage clan's allies
+</ResponseField>
+
+<ResponseField name="OPENSTORAGE" type="Subject">
+  **Name:** "Open storage"  
+  **Description:** Open and manage clan storage
+</ResponseField>
+
+### Methods
+
+<ResponseField name="getName()" type="String">
+  Returns the display name of the permission.
+</ResponseField>
+
+<ResponseField name="getDescription()" type="String">
+  Returns the description of what the permission allows.
+</ResponseField>
+
+### Usage Example
+
+```java
+import com.cortezromeo.clansplus.api.enums.Subject;
+import com.cortezromeo.clansplus.api.enums.Rank;
+import com.cortezromeo.clansplus.api.storage.IClanData;
+import java.util.HashMap;
+
+IClanData clanData = clansPlusAPI.getClanData("MyClan");
+
+// Get permission configuration
+HashMap<Subject, Rank> permissions = clanData.getSubjectPermission();
+
+// Check minimum rank required to invite
+Rank requiredRank = permissions.get(Subject.INVITE);
+System.out.println("Minimum rank to invite: " + requiredRank);
+
+// Set permissions: only MANAGER and above can kick
+permissions.put(Subject.KICK, Rank.MANAGER);
+clanData.setSubjectPermission(permissions);
+
+// List all permissions
+for (Subject subject : Subject.values()) {
+    System.out.println(subject.getName() + ": " + subject.getDescription());
+}
+```
+
+---
+
+## SkillType
+
+Defines the type of skill system integration.
+
+**Package:** `com.cortezromeo.clansplus.api.enums.SkillType`
+
+### Values
+
+<ResponseField name="PLUGIN" type="SkillType">
+  Uses the built-in ClansPlus skill system.
+</ResponseField>
+
+<ResponseField name="MYTHICMOBS" type="SkillType">
+  Integrates with MythicMobs for custom skill definitions.
+</ResponseField>
+
+### Usage Example
+
+```java
+import com.cortezromeo.clansplus.api.enums.SkillType;
+
+// Check which skill system is active
+SkillType currentType = config.getSkillType();
+
+if (currentType == SkillType.MYTHICMOBS) {
+    System.out.println("Using MythicMobs integration");
+} else {
+    System.out.println("Using built-in skill system");
+}
+```
+
+---
+
+## CurrencyType
+
+Defines the type of economy integration for clan upgrades and purchases.
+
+**Package:** `com.cortezromeo.clansplus.api.enums.CurrencyType`
+
+### Values
+
+<ResponseField name="WARPOINT" type="CurrencyType">
+  Uses the built-in ClansPlus war points currency.
+</ResponseField>
+
+<ResponseField name="VAULT" type="CurrencyType">
+  Integrates with Vault for economy plugin support (e.g., EssentialsX, CMI).
+</ResponseField>
+
+<ResponseField name="PLAYERPOINTS" type="CurrencyType">
+  Integrates with the PlayerPoints plugin.
+</ResponseField>
+
+### Usage Example
+
+```java
+import com.cortezromeo.clansplus.api.enums.CurrencyType;
+
+// Determine currency for upgrades
+CurrencyType currencyType = config.getCurrencyType();
+
+switch (currencyType) {
+    case WARPOINT:
+        System.out.println("Upgrades cost war points");
+        break;
+    case VAULT:
+        System.out.println("Upgrades cost money (Vault)");
+        break;
+    case PLAYERPOINTS:
+        System.out.println("Upgrades cost PlayerPoints");
+        break;
+}
+```
+
+---
+
+## DatabaseType
+
+Defines the database backend for data storage.
+
+**Package:** `com.cortezromeo.clansplus.api.enums.DatabaseType`
+
+### Values
+
+<ResponseField name="YAML" type="DatabaseType">
+  Stores data in YAML flat files (default, no setup required).
+</ResponseField>
+
+<ResponseField name="H2" type="DatabaseType">
+  Uses H2 embedded SQL database for better performance with large datasets.
+</ResponseField>
+
+### Usage Example
+
+```java
+import com.cortezromeo.clansplus.api.enums.DatabaseType;
+
+// Check active database type
+DatabaseType dbType = config.getDatabaseType();
+
+if (dbType == DatabaseType.H2) {
+    System.out.println("Using H2 database");
+} else {
+    System.out.println("Using YAML file storage");
+}
+```
+
+---
+
+## ItemType
+
+Defines the type of icon used for clan representation.
+
+**Package:** `com.cortezromeo.clansplus.api.enums.ItemType`
+
+### Values
+
+<ResponseField name="MATERIAL" type="ItemType">
+  Uses a standard Minecraft material (e.g., DIAMOND_SWORD, GOLDEN_APPLE).
+</ResponseField>
+
+<ResponseField name="CUSTOMHEAD" type="ItemType">
+  Uses a custom player head with a specific texture value.
+</ResponseField>
+
+<ResponseField name="PLAYERHEAD" type="ItemType">
+  Uses a player's head based on their username.
+</ResponseField>
+
+### Usage Example
+
+```java
+import com.cortezromeo.clansplus.api.enums.ItemType;
+import com.cortezromeo.clansplus.api.storage.IClanData;
+import org.bukkit.Material;
+
+IClanData clanData = clansPlusAPI.getClanData("MyClan");
+
+// Set a material icon
+clanData.setIconType(ItemType.MATERIAL);
+clanData.setIconValue("DIAMOND_SWORD");
+
+// Set a custom head texture
+clanData.setIconType(ItemType.CUSTOMHEAD);
+clanData.setIconValue("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA...");
+
+// Set a player head
+clanData.setIconType(ItemType.PLAYERHEAD);
+clanData.setIconValue("Notch");
+
+// Retrieve icon configuration
+ItemType iconType = clanData.getIconType();
+String iconValue = clanData.getIconValue();
+
+System.out.println("Clan icon: " + iconType + " - " + iconValue);
+```
+
+## See Also
+
+- [IClanData](/api/models/clan-data) - Clan data interface using these enums
+- [IPlayerData](/api/models/player-data) - Player data interface
+- [ClanPlus Interface](/api/clanplus-interface) - Main API interface

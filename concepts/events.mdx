@@ -1,0 +1,495 @@
+---
+title: Events
+description: Understanding clan war events and competitive gameplay in ClansPlus
+icon: trophy
+---
+
+Clan war events are scheduled competitive events where clans battle for supremacy, earning points through combat and claiming rewards.
+
+## War Event System
+
+The war event system (`WarEvent.java`) provides automated, scheduled PvP competitions where clans compete for the top positions on leaderboards.
+
+<Card title="Event Overview" icon="swords">
+  War events are time-limited competitions where clan members:
+  - Fight other clans for points
+  - Kill mobs for additional score
+  - Compete for top rankings
+  - Earn rewards based on performance
+</Card>
+
+## Event Configuration
+
+War events have extensive configuration options:
+
+### Basic Settings
+
+```yaml
+events:
+  clan-war-event:
+    enabled: true
+    minimum-player-online: 10      # Minimum players to start event
+    event-time: 3600               # Duration in seconds (1 hour)
+    event-time-frame:              # When events can start
+      - "14:00:00"
+      - "20:00:00"
+```
+
+### World Requirements
+
+```yaml
+world-requirement:
+  enabled: true
+  worlds:
+    - "world"
+    - "world_nether"
+```
+
+<Note>
+When world requirements are enabled, score is only earned in the specified worlds. This prevents abuse in safe zones.
+</Note>
+
+### Boss Bar Display
+
+```yaml
+event-boss-bar-settings:
+  enabled: true
+  title: "&c&lClan War Event &7- &f%timeLeft%"
+  color: RED      # Boss bar color
+  style: SOLID    # Boss bar style
+```
+
+The boss bar shows:
+- Time remaining in the event
+- Visual progress bar
+- Custom title with placeholders
+
+## Scoring System
+
+Clans earn points through different actions during the event:
+
+### Player Kills
+
+```java
+int SCORE_PLAYER;  // Points for killing enemy clan members
+```
+
+```yaml
+score-settings:
+  player: 100  # Points per player kill
+```
+
+**Rules:**
+- Only kills against other clans count
+- Cannot kill your own clan members for points
+- Allied clans are protected from each other
+
+```java
+if (killerClanData.getName().equals(victimClanData.getName())) return;
+
+if (!killerClanData.getAllies().isEmpty())
+    if (killerClanData.getAllies().contains(victimClanData.getName())) return;
+```
+
+### Mob Kills
+
+#### Vanilla Mobs
+
+```java
+HashMap<String, Integer> SCORE_VANILLA_MOBS;
+```
+
+```yaml
+score-settings:
+  vanilla-mobs:
+    ZOMBIE: 5
+    SKELETON: 5
+    CREEPER: 10
+    ENDERMAN: 15
+    WITHER_SKELETON: 20
+```
+
+#### MythicMobs Integration
+
+```java
+HashMap<String, Integer> SCORE_MYTHICMOBS_MOBS;
+```
+
+```yaml
+score-settings:
+  mythicmobs-mobs:
+    CustomBoss: 100
+    EliteMob: 50
+    RareMob: 25
+```
+
+<Info>
+MythicMobs support is automatic if the plugin is installed. Configure scores for your custom mob types.
+</Info>
+
+## Event Lifecycle
+
+### Starting the Event
+
+<Steps>
+  <Step title="Time Check">
+    Event starts at configured time frames (e.g., 14:00, 20:00)
+  </Step>
+  
+  <Step title="Player Count">
+    Verifies minimum online player requirement is met
+  </Step>
+  
+  <Step title="Notifications">
+    - Sends messages to all online players
+    - Creates boss bars for participants
+    - Plays starting sound effect
+    - Sends Discord notification (if configured)
+  </Step>
+  
+  <Step title="Timer Starts">
+    Event countdown begins, updating boss bars every second
+  </Step>
+</Steps>
+
+```java
+public void runEvent(boolean checkPlayerSize) {
+    if (STARTING || !ENABLED) return;
+    
+    if (checkPlayerSize) {
+        if (Bukkit.getOnlinePlayers().size() < MINIMUM_PLAYER_ONLINE) {
+            // Send "not enough players" message
+            return;
+        }
+    }
+    
+    TIMELEFT = EVENT_TIME;
+    MAXTIMELEFT = TIMELEFT;
+    STARTING = true;
+    
+    // Send messages, create boss bars, start timer
+}
+```
+
+### During the Event
+
+The event tracks multiple statistics:
+
+```java
+private HashMap<String, Long> playerDamagesCaused;      // Player -> Total damage dealt
+private HashMap<String, Long> playerDamagesCollected;   // Player -> Total damage taken
+private HashMap<String, Long> clanScoreCollected;       // Clan -> Points earned
+```
+
+**Damage Tracking:**
+```java
+getPlayerDamagesCaused().put(damager.getName(), 
+    getPlayerDamagesCaused(damager.getName()) + (long) event.getDamage());
+    
+getPlayerDamagesCollected().put(entityVictim.getName(), 
+    getPlayerDamagesCollected(entityVictim.getName()) + (long) event.getDamage());
+```
+
+### Ending the Event
+
+<Steps>
+  <Step title="Timer Expires">
+    Event time reaches zero or admin manually ends it
+  </Step>
+  
+  <Step title="Calculate Rankings">
+    Sort all tracked statistics:
+    - Top scoring clans
+    - Most damage dealt (players)
+    - Most damage taken (players)
+  </Step>
+  
+  <Step title="Distribute Rewards">
+    Award war points and execute reward commands
+  </Step>
+  
+  <Step title="Announcements">
+    - Send ending messages with rankings
+    - Play ending sound effect
+    - Remove boss bars
+    - Send Discord notification
+  </Step>
+  
+  <Step title="Cleanup">
+    Clear all event data and prepare for next event
+  </Step>
+</Steps>
+
+## Leaderboards
+
+The event tracks three separate leaderboards:
+
+### Top Scoring Clans
+
+```java
+List<String> topClanScoreCollected = HashMapUtil.sortFromGreatestToLowestL(getClanScoreCollected());
+```
+
+Ranks clans by total points earned during the event.
+
+### Most Damage Caused
+
+```java
+List<String> topPlayerDamagesCaused = HashMapUtil.sortFromGreatestToLowestL(getPlayerDamagesCaused());
+```
+
+Tracks individual players who dealt the most damage.
+
+### Most Damage Taken (Tank)
+
+```java
+List<String> topPlayerDamagesCollected = HashMapUtil.sortFromGreatestToLowestL(getPlayerDamagesCollected());
+```
+
+Recognizes players who absorbed the most damage.
+
+## Rewards System
+
+### War Points
+
+Clans and players earn war points based on their ranking:
+
+```yaml
+ending-rewards:
+  enabled: true
+  top-score-clans:
+    1:  # First place
+      warpoint: 1000
+      commands:
+        - "broadcast &6Clan %clan% won the war event!"
+    2:  # Second place
+      warpoint: 500
+      commands: []
+    3:  # Third place
+      warpoint: 250
+      commands: []
+```
+
+```java
+long warPointRewarded = eventConfigFile.getLong(configPath + "." + top + ".warpoint");
+PluginDataManager.getClanDatabase(clanName).setWarPoint(
+    PluginDataManager.getClanDatabase(clanName).getWarPoint() + warPointRewarded
+);
+```
+
+### Reward Commands
+
+Execute custom commands for winners:
+
+```yaml
+top-score-clans:
+  1:
+    commands:
+      - "give %player% diamond 64"
+      - "broadcast %clan% is the champion!"
+      - "eco give %player% 10000"
+      
+most-damage-caused-players:
+  1:
+    warpoint: 500
+    commands:
+      - "give %player% netherite_sword 1"
+```
+
+<Warning>
+Commands execute from the console. Be careful with permissions and ensure commands are properly escaped.
+</Warning>
+
+## Skill Integration
+
+Clan skills significantly impact war events:
+
+### Boost Score Skill
+
+Adds bonus points to every kill:
+
+```java
+SkillData boostScoreSkillData = SkillManager.getSkillData().get(
+    SkillManager.getSkillID(PluginSkill.BOOST_SCORE)
+);
+
+if (boostScoreSkillData != null) {
+    boostScoreSkillData.onDie(boostScoreSkillData, killer.getName(), victimName, false);
+    int clanBoostScoreSkillLevel = killerClanData.getSkillLevel().get(boostScoreSkillData.getId());
+    if (clanBoostScoreSkillLevel > 0)
+        checkBoostScore = MESSAGES_CLAN_BROADCAST_PLACEHOLDER_CHECKBOOSTSCORE
+            .replace("%bonusScore%", String.valueOf(BoostScoreSkill.boostScoreLevel.get(clanBoostScoreSkillLevel)));
+}
+```
+
+### Combat Skills
+
+All combat skills (Critical Hit, Life Steal, Dodge) are active during events:
+
+```java
+for (int skillID : damagerClanData.getSkillLevel().keySet()) {
+    SkillData skillData = SkillManager.getSkillData().get(skillID);
+    if (skillData != null) {
+        if (SkillManager.getSkillID(PluginSkill.DODGE) != skillData.getId())
+            skillData.onDamage(skillData, event);
+    }
+}
+```
+
+## Event Messages
+
+### Broadcast Messages
+
+Clans receive notifications when members score:
+
+```yaml
+messages:
+  clan-broadcast:
+    prefix: "&7[&cClan War&7] "
+    gain-score-player: "&a%player% &7killed &c%target% &7(+%score% points%checkBoostScore%)"
+    gain-score-mob: "&a%player% &7killed &e%target% &7(+%score% points%checkBoostScore%)"
+```
+
+```java
+alertClan(killerClanData.getName(), 
+    MESSAGES_CLAN_BROADCAST_GAIN_SCORE_PLAYER
+        .replace("%player%", killer.getName())
+        .replace("%target%", entityVictim.getName())
+        .replace("%score%", String.valueOf(SCORE_PLAYER))
+        .replace("%checkBoostScore%", checkBoostScore)
+);
+```
+
+### Status Messages
+
+Players can check event status:
+
+```java
+public void sendEventStatusMessage(Player player, boolean playSound) {
+    if (!isStarting()) {
+        // Show next event time and requirements
+    } else {
+        // Show time remaining and active worlds
+    }
+}
+```
+
+## Combat Cooldown
+
+Prevent players from using certain commands during combat:
+
+```yaml
+combat-command-cooldown:
+  enabled: true
+  seconds: 10  # Cooldown duration
+```
+
+This prevents exploits like teleporting away during PvP.
+
+## Discord Integration
+
+Send event notifications to Discord:
+
+```java
+if (ClansPlus.support.getDiscordSupport() != null)
+    ClansPlus.support.getDiscordSupport().sendMessage(
+        ClansPlus.support.getDiscordSupport().getWarEventStartingMessage(
+            ClansPlus.plugin.getDataFolder() + "/discordsrv-warevent-starting.json", 
+            EventManager.getWarEvent()
+        )
+    );
+```
+
+Configure Discord webhooks and message formats in separate configuration files.
+
+## Event Statistics
+
+Access total statistics:
+
+```java
+public long getTotalDamageCaused() {
+    long totalDamageCaused = 0;
+    for (String player : playerDamagesCaused.keySet()) {
+        totalDamageCaused += playerDamagesCaused.get(player);
+    }
+    return totalDamageCaused;
+}
+
+public long getTotalScoreCollected() {
+    long totalScoreCollected = 0;
+    for (String clan : clanScoreCollected.keySet()) {
+        totalScoreCollected += clanScoreCollected.get(clan);
+    }
+    return totalScoreCollected;
+}
+```
+
+Use these in ending messages:
+
+```yaml
+event-ending:
+  messages: |
+    &7Total Damage: &c%totalDamagesCaused%
+    &7Total Score: &e%totalScoreCollected%
+```
+
+## Admin Commands
+
+Administrators can control events:
+
+- **Start Event**: Manually trigger an event
+- **End Event**: Stop the current event
+- **Set Time**: Adjust remaining time
+- **Toggle**: Enable/disable events
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Scheduling" icon="clock">
+    - Schedule events at peak player times
+    - Avoid conflicting with other server events
+    - Test time zones for international servers
+    - Announce schedule to players
+  </Card>
+  
+  <Card title="Balance" icon="scale-balanced">
+    - Test scoring values thoroughly
+    - Balance player vs mob kill rewards
+    - Adjust for server size
+    - Consider skill impacts
+  </Card>
+  
+  <Card title="Rewards" icon="gift">
+    - Make rewards worthwhile but not overpowered
+    - Reward top 3-5 positions
+    - Include participation rewards
+    - Vary rewards to keep interest
+  </Card>
+  
+  <Card title="Communication" icon="megaphone">
+    - Clear event rules and requirements
+    - Notify players before events start
+    - Show countdown timers
+    - Explain scoring system
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Skills" icon="wand-magic-sparkles" href="/concepts/skills">
+    Optimize your clan's skills for events
+  </Card>
+  
+  <Card title="Configuration" icon="gear" href="/configuration/setup">
+    Configure event settings
+  </Card>
+  
+  <Card title="Clans" icon="users" href="/concepts/clans">
+    Build a strong clan foundation
+  </Card>
+  
+  <Card title="Commands" icon="terminal" href="/commands/admin-commands">
+    Admin event commands
+  </Card>
+</CardGroup>

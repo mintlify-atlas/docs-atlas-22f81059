@@ -1,0 +1,350 @@
+---
+title: Clan Operations
+description: Creating and managing clans with the ClansPlus API
+---
+
+This guide covers advanced clan operations including creating clans, modifying data, and managing members.
+
+## Creating a Clan
+
+<Steps>
+
+<Step title="Initialize the API">
+
+```java
+ClanPlus clansPlusAPI = Bukkit.getServicesManager().getRegistration(ClanPlus.class).getProvider();
+ClanPlus.PluginDataManagerUtil dataManager = clansPlusAPI.getPluginDataManager();
+```
+
+</Step>
+
+<Step title="Check if clan exists">
+
+```java
+String clanName = "HelloClan";
+
+// If clan does not exist, create a new clan
+if (!dataManager.getClanDatabase().containsKey(clanName)) {
+    dataManager.loadClanDatabase(clanName);
+}
+```
+
+</Step>
+
+<Step title="Get the clan data">
+
+```java
+IClanData clanData = dataManager.getClanDatabase(clanName);
+```
+
+</Step>
+
+</Steps>
+
+<Note>
+The `loadClanDatabase()` method creates a new clan entry in the database. You'll need to set additional properties like the owner and initial configuration.
+</Note>
+
+## Setting Up a New Clan
+
+Here's a complete example of creating and configuring a new clan:
+
+```java
+public void createClan(String clanName, String ownerName) {
+    ClanPlus clansPlusAPI = Bukkit.getServicesManager().getRegistration(ClanPlus.class).getProvider();
+    ClanPlus.PluginDataManagerUtil dataManager = clansPlusAPI.getPluginDataManager();
+    ClanPlus.ClanManagerUtil clanManager = clansPlusAPI.getClanManager();
+    
+    // Check if clan already exists
+    if (clanManager.isClanExisted(clanName)) {
+        getLogger().warning("Clan " + clanName + " already exists!");
+        return;
+    }
+    
+    // Create the clan
+    dataManager.loadClanDatabase(clanName);
+    IClanData clanData = dataManager.getClanDatabase(clanName);
+    
+    // Set basic properties
+    clanData.setOwner(ownerName);
+    clanData.setMessage("Welcome to " + clanName + "!");
+    clanData.setCustomName("&b" + clanName);
+    clanData.setScore(0);
+    clanData.setWarPoint(0L);
+    clanData.setMaxMembers(10);
+    clanData.setCreatedDate(System.currentTimeMillis());
+    
+    // Save to database
+    dataManager.saveClanDatabaseToStorage(clanName, clanData);
+    
+    getLogger().info("Created clan " + clanName + " with owner " + ownerName);
+}
+```
+
+## Modifying Clan Data
+
+### Updating Clan Message
+
+```java
+String clanName = "HelloClan";
+IClanData clanData = dataManager.getClanDatabase(clanName);
+
+if (clanData != null) {
+    clanData.setMessage("This is the first message of this clan!");
+    dataManager.saveClanDatabaseToStorage(clanName, clanData);
+}
+```
+
+### Setting Custom Name
+
+Clan custom names support color codes:
+
+```java
+clanData.setCustomName("&bSuper Clan");
+dataManager.saveClanDatabaseToStorage(clanName, clanData);
+```
+
+<Info>
+Use `&` for color codes. ClansPlus supports hex colors for modern Minecraft versions.
+</Info>
+
+### Adjusting Clan Score
+
+```java
+IClanData clanData = dataManager.getClanDatabase("HelloClan");
+
+if (clanData != null) {
+    // Add 100 points to current score
+    int currentScore = clanData.getScore();
+    clanData.setScore(currentScore + 100);
+    
+    dataManager.saveClanDatabaseToStorage("HelloClan", clanData);
+}
+```
+
+### Updating War Points
+
+```java
+IClanData clanData = dataManager.getClanDatabase("HelloClan");
+
+if (clanData != null) {
+    long currentWarPoints = clanData.getWarPoint();
+    clanData.setWarPoint(currentWarPoints + 50L);
+    
+    dataManager.saveClanDatabaseToStorage("HelloClan", clanData);
+}
+```
+
+## Managing Clan Members
+
+### Listing Members
+
+```java
+IClanData clanData = dataManager.getClanDatabase("HelloClan");
+
+if (clanData != null) {
+    List<String> members = clanData.getMembers();
+    
+    getLogger().info("Clan has " + members.size() + " members:");
+    for (String member : members) {
+        getLogger().info("- " + member);
+    }
+}
+```
+
+### Adding a Member
+
+See the [Player Management](/api/examples/player-management) guide for detailed examples of adding players to clans.
+
+### Removing a Member
+
+```java
+String clanName = "HelloClan";
+String playerName = "PlayerToRemove";
+
+IClanData clanData = dataManager.getClanDatabase(clanName);
+IPlayerData playerData = dataManager.getPlayerDatabase(playerName);
+
+if (clanData != null && playerData != null) {
+    // Remove from clan members list
+    clanData.getMembers().remove(playerName);
+    
+    // Clear player's clan data
+    dataManager.clearPlayerDatabase(playerName);
+    
+    // Save changes
+    dataManager.saveClanDatabaseToStorage(clanName, clanData);
+    dataManager.savePlayerDatabaseToStorage(playerName, playerData);
+}
+```
+
+## Working with Allies
+
+### Adding an Ally
+
+```java
+String clanName = "HelloClan";
+String allyClanName = "AllyFriends";
+
+IClanData clanData = dataManager.getClanDatabase(clanName);
+IClanData allyData = dataManager.getClanDatabase(allyClanName);
+
+if (clanData != null && allyData != null) {
+    // Add to allies list
+    List<String> allies = clanData.getAllies();
+    if (!allies.contains(allyClanName)) {
+        allies.add(allyClanName);
+        clanData.setAllies(allies);
+        
+        // Make it mutual
+        List<String> allyAllies = allyData.getAllies();
+        if (!allyAllies.contains(clanName)) {
+            allyAllies.add(clanName);
+            allyData.setAllies(allyAllies);
+        }
+        
+        // Save both clans
+        dataManager.saveClanDatabaseToStorage(clanName, clanData);
+        dataManager.saveClanDatabaseToStorage(allyClanName, allyData);
+    }
+}
+```
+
+### Listing Allies
+
+```java
+IClanData clanData = dataManager.getClanDatabase("HelloClan");
+
+if (clanData != null) {
+    List<String> allies = clanData.getAllies();
+    
+    getLogger().info("Clan has " + allies.size() + " allies:");
+    for (String ally : allies) {
+        getLogger().info("- " + ally);
+    }
+}
+```
+
+### Removing an Ally
+
+```java
+String clanName = "HelloClan";
+String allyClanName = "AllyFriends";
+
+IClanData clanData = dataManager.getClanDatabase(clanName);
+IClanData allyData = dataManager.getClanDatabase(allyClanName);
+
+if (clanData != null && allyData != null) {
+    // Remove from allies list
+    List<String> allies = clanData.getAllies();
+    allies.remove(allyClanName);
+    clanData.setAllies(allies);
+    
+    // Remove from ally's list too
+    List<String> allyAllies = allyData.getAllies();
+    allyAllies.remove(clanName);
+    allyData.setAllies(allyAllies);
+    
+    // Save both clans
+    dataManager.saveClanDatabaseToStorage(clanName, clanData);
+    dataManager.saveClanDatabaseToStorage(allyClanName, allyData);
+}
+```
+
+## Sending Alerts to Clan
+
+Notify all online clan members:
+
+```java
+ClanPlus.ClanManagerUtil clanManager = clansPlusAPI.getClanManager();
+
+clanManager.alertClan("HelloClan", "Have a good day!");
+```
+
+The message supports placeholders:
+- `%prefix%` - Clan broadcast prefix
+- Clan-specific placeholders
+
+## Deleting a Clan
+
+<Warning>
+Deleting a clan is permanent and cannot be undone. Make sure to remove all members first.
+</Warning>
+
+```java
+public void deleteClan(String clanName) {
+    IClanData clanData = dataManager.getClanDatabase(clanName);
+    
+    if (clanData == null) {
+        getLogger().warning("Clan " + clanName + " does not exist!");
+        return;
+    }
+    
+    // Remove all members from the clan
+    List<String> members = new ArrayList<>(clanData.getMembers());
+    for (String memberName : members) {
+        dataManager.clearPlayerDatabase(memberName);
+        dataManager.savePlayerDatabaseToStorage(memberName);
+    }
+    
+    // Delete the clan
+    boolean success = dataManager.deleteClanData(clanName);
+    
+    if (success) {
+        getLogger().info("Successfully deleted clan " + clanName);
+    } else {
+        getLogger().severe("Failed to delete clan " + clanName);
+    }
+}
+```
+
+## Complete Example
+
+Here's a comprehensive example combining multiple operations:
+
+```java
+public void setupCompleteClan() {
+    // Initialize API
+    ClanPlus clansPlusAPI = Bukkit.getServicesManager().getRegistration(ClanPlus.class).getProvider();
+    ClanPlus.PluginDataManagerUtil dataManager = clansPlusAPI.getPluginDataManager();
+    ClanPlus.ClanManagerUtil clanManager = clansPlusAPI.getClanManager();
+    
+    String clanName = "HelloClan";
+    
+    // If clan does not exist, create a new clan
+    if (!dataManager.getClanDatabase().containsKey(clanName)) {
+        dataManager.loadClanDatabase(clanName);
+    }
+    
+    IClanData clanData = dataManager.getClanDatabase(clanName);
+    
+    // Add a player to the clan
+    String playerName = "Cortez_Romeo";
+    clanManager.addPlayerToAClan(playerName, clanName, false);
+    
+    // Promote this player to leader of the clan
+    dataManager.getPlayerDatabase(playerName).setRank(Rank.LEADER);
+    clanData.setOwner(playerName);
+    
+    // Adjust clan's database
+    clanData.setMessage("This is the first message of this clan!");
+    clanData.setCustomName("&bSuper Clan");
+    
+    // Alert the clan
+    clanManager.alertClan(clanName, "Have a good day!");
+    
+    // Save database
+    dataManager.saveClanDatabaseToStorage(clanName, clanData);
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Player Management" icon="user" href="/api/examples/player-management">
+    Learn how to manage players and ranks
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/clanplus-interface">
+    View complete API documentation
+  </Card>
+</CardGroup>

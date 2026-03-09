@@ -1,0 +1,438 @@
+---
+title: Player Management
+description: Managing players and their clan memberships
+---
+
+This guide covers player-specific operations including adding players to clans, setting ranks, and managing player data.
+
+## Adding Players to Clans
+
+### Basic Addition
+
+The simplest way to add a player to a clan:
+
+```java
+ClanPlus clansPlusAPI = Bukkit.getServicesManager().getRegistration(ClanPlus.class).getProvider();
+ClanPlus.ClanManagerUtil clanManager = clansPlusAPI.getClanManager();
+
+String playerName = "Cortez_Romeo";
+String clanName = "HelloClan";
+
+clanManager.addPlayerToAClan(playerName, clanName, false);
+```
+
+<Info>
+The third parameter `forceToLeaveOldClan` determines whether the player should be removed from their current clan first.
+</Info>
+
+### Force Transfer from Another Clan
+
+If a player is already in a clan and you want to transfer them:
+
+```java
+String playerName = "Cortez_Romeo";
+String newClanName = "NewClan";
+
+// Force player to leave their current clan and join the new one
+clanManager.addPlayerToAClan(playerName, newClanName, true);
+```
+
+### Safe Addition with Checks
+
+<Steps>
+
+<Step title="Check if player exists">
+
+```java
+ClanPlus.PluginDataManagerUtil dataManager = clansPlusAPI.getPluginDataManager();
+
+String playerName = "Cortez_Romeo";
+
+if (!dataManager.getPlayerDatabase().containsKey(playerName)) {
+    // Load player data if not in memory
+    dataManager.loadPlayerDatabase(playerName);
+}
+```
+
+</Step>
+
+<Step title="Check if player is already in a clan">
+
+```java
+if (clanManager.isPlayerInClan(playerName)) {
+    IPlayerData playerData = dataManager.getPlayerDatabase(playerName);
+    getLogger().warning(playerName + " is already in clan: " + playerData.getClan());
+    return;
+}
+```
+
+</Step>
+
+<Step title="Verify clan exists">
+
+```java
+String clanName = "HelloClan";
+
+if (!clanManager.isClanExisted(clanName)) {
+    getLogger().warning("Clan " + clanName + " does not exist!");
+    return;
+}
+```
+
+</Step>
+
+<Step title="Add player to clan">
+
+```java
+clanManager.addPlayerToAClan(playerName, clanName, false);
+getLogger().info("Successfully added " + playerName + " to " + clanName);
+```
+
+</Step>
+
+</Steps>
+
+## Complete Example: Adding a Player
+
+Here's a comprehensive method that safely adds a player to a clan:
+
+```java
+public boolean addPlayerToClan(String playerName, String clanName) {
+    ClanPlus clansPlusAPI = Bukkit.getServicesManager().getRegistration(ClanPlus.class).getProvider();
+    ClanPlus.PluginDataManagerUtil dataManager = clansPlusAPI.getPluginDataManager();
+    ClanPlus.ClanManagerUtil clanManager = clansPlusAPI.getClanManager();
+    
+    // Verify player data exists
+    if (!dataManager.getPlayerDatabase().containsKey(playerName)) {
+        dataManager.loadPlayerDatabase(playerName);
+    }
+    
+    // Check if clan exists
+    if (!clanManager.isClanExisted(clanName)) {
+        getLogger().severe("Clan " + clanName + " does not exist!");
+        return false;
+    }
+    
+    // Check if player is already in a clan
+    if (clanManager.isPlayerInClan(playerName)) {
+        IPlayerData playerData = dataManager.getPlayerDatabase(playerName);
+        getLogger().warning(playerName + " is already in clan: " + playerData.getClan());
+        return false;
+    }
+    
+    // Add player to clan
+    clanManager.addPlayerToAClan(playerName, clanName, false);
+    
+    getLogger().info("Successfully added " + playerName + " to " + clanName);
+    return true;
+}
+```
+
+## Setting Player Ranks
+
+### Available Ranks
+
+ClansPlus has three rank levels:
+- `Rank.LEADER` - Clan owner with full permissions
+- `Rank.MANAGER` - Trusted member with elevated permissions
+- `Rank.MEMBER` - Regular clan member
+
+### Promoting to Leader
+
+```java
+String playerName = "Cortez_Romeo";
+String clanName = "HelloClan";
+
+IPlayerData playerData = dataManager.getPlayerDatabase(playerName);
+IClanData clanData = dataManager.getClanDatabase(clanName);
+
+if (playerData != null && clanData != null) {
+    // Set player rank to leader
+    playerData.setRank(Rank.LEADER);
+    
+    // Update clan owner
+    clanData.setOwner(playerName);
+    
+    // Save changes
+    dataManager.savePlayerDatabaseToStorage(playerName, playerData);
+    dataManager.saveClanDatabaseToStorage(clanName, clanData);
+}
+```
+
+### Promoting to Manager
+
+```java
+IPlayerData playerData = dataManager.getPlayerDatabase("Cortez_Romeo");
+
+if (playerData != null && playerData.getClan() != null) {
+    playerData.setRank(Rank.MANAGER);
+    dataManager.savePlayerDatabaseToStorage("Cortez_Romeo", playerData);
+}
+```
+
+### Demoting to Member
+
+```java
+IPlayerData playerData = dataManager.getPlayerDatabase("Cortez_Romeo");
+
+if (playerData != null && playerData.getClan() != null) {
+    playerData.setRank(Rank.MEMBER);
+    dataManager.savePlayerDatabaseToStorage("Cortez_Romeo", playerData);
+}
+```
+
+## Checking Player Rank Permissions
+
+Verify if a player has sufficient rank for an operation:
+
+```java
+String playerName = "Cortez_Romeo";
+Rank requiredRank = Rank.MANAGER;
+
+if (clanManager.isPlayerRankSatisfied(playerName, requiredRank)) {
+    getLogger().info(playerName + " has sufficient rank!");
+} else {
+    getLogger().warning(playerName + " does not have required rank: " + requiredRank);
+}
+```
+
+<Note>
+Leaders automatically satisfy all rank requirements. Managers satisfy Member requirements.
+</Note>
+
+## Updating Player Data
+
+### Setting Score Collected
+
+```java
+IPlayerData playerData = dataManager.getPlayerDatabase("Cortez_Romeo");
+
+if (playerData != null) {
+    long currentScore = playerData.getScoreCollected();
+    playerData.setScoreCollected(currentScore + 50L);
+    
+    dataManager.savePlayerDatabaseToStorage("Cortez_Romeo", playerData);
+}
+```
+
+### Updating Last Activated
+
+```java
+IPlayerData playerData = dataManager.getPlayerDatabase("Cortez_Romeo");
+
+if (playerData != null) {
+    playerData.setLastActivated(System.currentTimeMillis());
+    dataManager.savePlayerDatabaseToStorage("Cortez_Romeo", playerData);
+}
+```
+
+### Setting Join Date
+
+```java
+IPlayerData playerData = dataManager.getPlayerDatabase("Cortez_Romeo");
+
+if (playerData != null) {
+    playerData.setJoinDate(System.currentTimeMillis());
+    dataManager.savePlayerDatabaseToStorage("Cortez_Romeo", playerData);
+}
+```
+
+## Querying Player Information
+
+### Getting All Player Data
+
+```java
+public void displayPlayerInfo(String playerName) {
+    IPlayerData playerData = dataManager.getPlayerDatabase(playerName);
+    
+    if (playerData == null) {
+        getLogger().warning("Player " + playerName + " not found!");
+        return;
+    }
+    
+    getLogger().info("=== Player Info: " + playerName + " ===");
+    getLogger().info("UUID: " + playerData.getUUID());
+    getLogger().info("Clan: " + (playerData.getClan() != null ? playerData.getClan() : "None"));
+    getLogger().info("Rank: " + (playerData.getRank() != null ? playerData.getRank() : "None"));
+    getLogger().info("Join Date: " + playerData.getJoinDate());
+    getLogger().info("Score Collected: " + playerData.getScoreCollected());
+    getLogger().info("Last Activated: " + playerData.getLastActivated());
+}
+```
+
+### Listing All Players in a Clan
+
+```java
+public void listClanMembers(String clanName) {
+    IClanData clanData = dataManager.getClanDatabase(clanName);
+    
+    if (clanData == null) {
+        getLogger().warning("Clan " + clanName + " not found!");
+        return;
+    }
+    
+    List<String> members = clanData.getMembers();
+    getLogger().info("=== Members of " + clanName + " ===");
+    
+    for (String memberName : members) {
+        IPlayerData playerData = dataManager.getPlayerDatabase(memberName);
+        
+        if (playerData != null) {
+            String rank = playerData.getRank() != null ? playerData.getRank().toString() : "UNKNOWN";
+            getLogger().info("- " + memberName + " (" + rank + ")");
+        }
+    }
+}
+```
+
+### Finding Players by Rank
+
+```java
+public List<String> getPlayersByRank(String clanName, Rank rank) {
+    List<String> playersWithRank = new ArrayList<>();
+    
+    IClanData clanData = dataManager.getClanDatabase(clanName);
+    if (clanData == null) return playersWithRank;
+    
+    for (String memberName : clanData.getMembers()) {
+        IPlayerData playerData = dataManager.getPlayerDatabase(memberName);
+        
+        if (playerData != null && playerData.getRank() == rank) {
+            playersWithRank.add(memberName);
+        }
+    }
+    
+    return playersWithRank;
+}
+
+// Usage
+List<String> managers = getPlayersByRank("HelloClan", Rank.MANAGER);
+getLogger().info("Managers: " + String.join(", ", managers));
+```
+
+## Removing Players from Clans
+
+### Safe Removal
+
+```java
+public boolean removePlayerFromClan(String playerName) {
+    IPlayerData playerData = dataManager.getPlayerDatabase(playerName);
+    
+    if (playerData == null || playerData.getClan() == null) {
+        getLogger().warning(playerName + " is not in a clan!");
+        return false;
+    }
+    
+    String clanName = playerData.getClan();
+    IClanData clanData = dataManager.getClanDatabase(clanName);
+    
+    if (clanData == null) {
+        getLogger().severe("Data inconsistency for player " + playerName);
+        return false;
+    }
+    
+    // Remove from clan members list
+    clanData.getMembers().remove(playerName);
+    
+    // Clear player data
+    dataManager.clearPlayerDatabase(playerName);
+    
+    // Save changes
+    dataManager.saveClanDatabaseToStorage(clanName, clanData);
+    dataManager.savePlayerDatabaseToStorage(playerName);
+    
+    getLogger().info("Removed " + playerName + " from " + clanName);
+    return true;
+}
+```
+
+<Warning>
+Always remove the player from the clan's member list AND clear their player data to maintain database consistency.
+</Warning>
+
+## Complete Example: Player Lifecycle
+
+Here's a complete example showing a player's lifecycle from joining to leaving:
+
+```java
+public void playerLifecycleExample() {
+    // Initialize API
+    ClanPlus clansPlusAPI = Bukkit.getServicesManager().getRegistration(ClanPlus.class).getProvider();
+    ClanPlus.PluginDataManagerUtil dataManager = clansPlusAPI.getPluginDataManager();
+    ClanPlus.ClanManagerUtil clanManager = clansPlusAPI.getClanManager();
+    
+    String playerName = "Cortez_Romeo";
+    String clanName = "HelloClan";
+    
+    // 1. Add player to clan
+    clanManager.addPlayerToAClan(playerName, clanName, false);
+    
+    // 2. Player starts as MEMBER (automatically set by addPlayerToAClan)
+    IPlayerData playerData = dataManager.getPlayerDatabase(playerName);
+    getLogger().info("Initial rank: " + playerData.getRank()); // MEMBER
+    
+    // 3. Promote to manager after some time
+    playerData.setRank(Rank.MANAGER);
+    dataManager.savePlayerDatabaseToStorage(playerName, playerData);
+    
+    // 4. Update player's score
+    playerData.setScoreCollected(playerData.getScoreCollected() + 100L);
+    dataManager.savePlayerDatabaseToStorage(playerName, playerData);
+    
+    // 5. Update last activated
+    playerData.setLastActivated(System.currentTimeMillis());
+    dataManager.savePlayerDatabaseToStorage(playerName, playerData);
+    
+    // 6. Check permissions
+    if (clanManager.isPlayerRankSatisfied(playerName, Rank.MEMBER)) {
+        getLogger().info(playerName + " can perform member actions");
+    }
+    
+    // 7. Eventually promote to leader
+    playerData.setRank(Rank.LEADER);
+    IClanData clanData = dataManager.getClanDatabase(clanName);
+    clanData.setOwner(playerName);
+    
+    dataManager.savePlayerDatabaseToStorage(playerName, playerData);
+    dataManager.saveClanDatabaseToStorage(clanName, clanData);
+    
+    // 8. Later, player leaves clan
+    clanData.getMembers().remove(playerName);
+    dataManager.clearPlayerDatabase(playerName);
+    
+    dataManager.saveClanDatabaseToStorage(clanName, clanData);
+    dataManager.savePlayerDatabaseToStorage(playerName);
+}
+```
+
+## Working with Online Players
+
+You can also work with online Player objects:
+
+```java
+Player player = Bukkit.getPlayer("Cortez_Romeo");
+
+if (player != null) {
+    // Check if online player is in a clan
+    if (clanManager.isPlayerInClan(player)) {
+        IClanData clanData = dataManager.getClanDatabaseByPlayerName(player.getName());
+        
+        if (clanData != null) {
+            player.sendMessage("You are in clan: " + clanData.getName());
+        }
+    } else {
+        player.sendMessage("You are not in a clan!");
+    }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Clan Operations" icon="users" href="/api/examples/clan-operations">
+    Learn about advanced clan management
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/clanplus-interface">
+    View complete API documentation
+  </Card>
+</CardGroup>

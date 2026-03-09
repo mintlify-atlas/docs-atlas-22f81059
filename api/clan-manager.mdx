@@ -1,0 +1,389 @@
+---
+title: 'Clan Manager'
+description: 'Utilities for managing clans and checking clan information'
+---
+
+## Overview
+
+The `ClanManagerUtil` interface provides utilities for managing clans, checking player membership, sending messages, and accessing clan statistics.
+
+## Getting the Clan Manager
+
+```java
+ClanPlus clansPlusAPI = Bukkit.getServicesManager()
+    .getRegistration(ClanPlus.class)
+    .getProvider();
+    
+ClanManagerUtil clanManager = clansPlusAPI.getClanManager();
+```
+
+## Clan Verification Methods
+
+### isClanExisted()
+
+Checks if a clan with the given name exists.
+
+<ParamField path="clanName" type="String" required>
+  The name of the clan to check
+</ParamField>
+
+<ResponseField name="return" type="boolean">
+  `true` if the clan exists, `false` otherwise
+</ResponseField>
+
+```java
+boolean exists = clanManager.isClanExisted("HelloClan");
+if (exists) {
+    // Clan exists
+}
+```
+
+### isPlayerInClan()
+
+Checks if a player is in any clan.
+
+<ParamField path="playerName" type="String" required>
+  The player's name to check
+</ParamField>
+
+<ResponseField name="return" type="boolean">
+  `true` if the player is in a clan, `false` otherwise
+</ResponseField>
+
+```java
+boolean inClan = clanManager.isPlayerInClan("Cortez_Romeo");
+if (inClan) {
+    // Player is in a clan
+}
+```
+
+Also available with a `Player` object:
+
+```java
+boolean inClan = clanManager.isPlayerInClan(player);
+```
+
+## Clan Communication
+
+### alertClan()
+
+Sends a message to all online members of a clan.
+
+<ParamField path="clanName" type="String" required>
+  The name of the clan to alert
+</ParamField>
+
+<ParamField path="message" type="String" required>
+  The message to send to clan members
+</ParamField>
+
+```java
+clanManager.alertClan("HelloClan", "Have a good day!");
+```
+
+### sendClanBroadCast()
+
+Sends a clan broadcast message related to a player.
+
+<ParamField path="player" type="Player" required>
+  The player associated with the broadcast
+</ParamField>
+
+```java
+clanManager.sendClanBroadCast(player);
+```
+
+## Player Management
+
+### addPlayerToAClan()
+
+Adds a player to a clan with options for handling existing clan membership.
+
+<ParamField path="playerName" type="String" required>
+  The name of the player to add
+</ParamField>
+
+<ParamField path="clanName" type="String" required>
+  The name of the clan to add the player to
+</ParamField>
+
+<ParamField path="forceToLeaveOldClan" type="boolean" required>
+  If `true`, removes player from their current clan before adding to new clan
+</ParamField>
+
+```java
+// Add player to clan, forcing them to leave their old clan
+clanManager.addPlayerToAClan("Cortez_Romeo", "HelloClan", true);
+
+// Add player only if they're not in a clan
+clanManager.addPlayerToAClan("NewPlayer", "HelloClan", false);
+```
+
+### isPlayerRankSatisfied()
+
+Checks if a player's rank meets or exceeds a required rank.
+
+<ParamField path="playerName" type="String" required>
+  The player's name to check
+</ParamField>
+
+<ParamField path="requiredRank" type="Rank" required>
+  The minimum rank required (LEADER, MANAGER, or MEMBER)
+</ParamField>
+
+<ResponseField name="return" type="boolean">
+  `true` if player's rank is sufficient, `false` otherwise
+</ResponseField>
+
+```java
+import com.cortezromeo.clansplus.api.enums.Rank;
+
+boolean canManage = clanManager.isPlayerRankSatisfied("Cortez_Romeo", Rank.MANAGER);
+if (canManage) {
+    // Player is MANAGER or LEADER
+}
+```
+
+## Clan Statistics
+
+### getClansScoreHashMap()
+
+Returns a map of clan names to their scores.
+
+<ResponseField name="return" type="HashMap<String, Integer>">
+  Map of clan names to scores
+</ResponseField>
+
+```java
+HashMap<String, Integer> scores = clanManager.getClansScoreHashMap();
+for (Map.Entry<String, Integer> entry : scores.entrySet()) {
+    String clanName = entry.getKey();
+    int score = entry.getValue();
+}
+```
+
+### getClansPlayerSize()
+
+Returns a map of clan names to their member counts.
+
+<ResponseField name="return" type="HashMap<String, Integer>">
+  Map of clan names to member counts
+</ResponseField>
+
+```java
+HashMap<String, Integer> sizes = clanManager.getClansPlayerSize();
+```
+
+### getClansWarpointHashMap()
+
+Returns a map of clan names to their war points.
+
+<ResponseField name="return" type="HashMap<String, Long>">
+  Map of clan names to war points
+</ResponseField>
+
+```java
+HashMap<String, Long> warPoints = clanManager.getClansWarpointHashMap();
+```
+
+### getClansCreatedDate()
+
+Returns a map of clan names to their creation dates (in milliseconds).
+
+<ResponseField name="return" type="HashMap<String, Long>">
+  Map of clan names to creation timestamps
+</ResponseField>
+
+```java
+HashMap<String, Long> dates = clanManager.getClansCreatedDate();
+```
+
+### getClansCustomName()
+
+Returns a list of all clan custom names.
+
+<ResponseField name="return" type="List<String>">
+  List of clan custom names
+</ResponseField>
+
+```java
+List<String> customNames = clanManager.getClansCustomName();
+```
+
+## Formatting Methods
+
+### getFormatClanName()
+
+Returns the formatted display name for a clan.
+
+<ParamField path="clanData" type="IClanData" required>
+  The clan data object
+</ParamField>
+
+<ResponseField name="return" type="String">
+  Formatted clan name
+</ResponseField>
+
+```java
+IClanData clanData = dataManager.getClanDatabase("HelloClan");
+String formattedName = clanManager.getFormatClanName(clanData);
+```
+
+### getFormatClanMessage()
+
+Returns the formatted clan message.
+
+<ParamField path="clanData" type="IClanData" required>
+  The clan data object
+</ParamField>
+
+<ResponseField name="return" type="String">
+  Formatted clan message
+</ResponseField>
+
+```java
+String formattedMessage = clanManager.getFormatClanMessage(clanData);
+```
+
+### getFormatClanCustomName()
+
+Returns the formatted clan custom name.
+
+<ParamField path="clanData" type="IClanData" required>
+  The clan data object
+</ParamField>
+
+<ResponseField name="return" type="String">
+  Formatted clan custom name
+</ResponseField>
+
+```java
+String formattedCustomName = clanManager.getFormatClanCustomName(clanData);
+```
+
+### getFormatRank()
+
+Returns the formatted display name for a rank.
+
+<ParamField path="rank" type="Rank" required>
+  The rank to format (LEADER, MANAGER, or MEMBER)
+</ParamField>
+
+<ResponseField name="return" type="String">
+  Formatted rank name
+</ResponseField>
+
+```java
+String formattedRank = clanManager.getFormatRank(Rank.LEADER);
+```
+
+## Player State Methods
+
+### getPlayerUsingClanChat()
+
+Returns a list of players currently using clan chat.
+
+<ResponseField name="return" type="List<Player>">
+  List of players in clan chat mode
+</ResponseField>
+
+```java
+List<Player> clanChatPlayers = clanManager.getPlayerUsingClanChat();
+```
+
+### getPlayerTogglingPvP()
+
+Returns a list of players who have PvP toggled on.
+
+<ResponseField name="return" type="List<Player>">
+  List of players with PvP enabled
+</ResponseField>
+
+```java
+List<Player> pvpPlayers = clanManager.getPlayerTogglingPvP();
+```
+
+### getPlayerUsingChatSpy()
+
+Returns a list of players using chat spy.
+
+<ResponseField name="return" type="List<Player>">
+  List of players with chat spy enabled
+</ResponseField>
+
+```java
+List<Player> chatSpyPlayers = clanManager.getPlayerUsingChatSpy();
+```
+
+### isConsoleUsingChatSpy()
+
+Checks if console has chat spy enabled.
+
+<ResponseField name="return" type="boolean">
+  `true` if console chat spy is enabled, `false` otherwise
+</ResponseField>
+
+```java
+boolean consoleSpy = clanManager.isConsoleUsingChatSpy();
+```
+
+## Clan Storage
+
+### openClanStorage()
+
+Opens a clan's storage inventory for a player.
+
+<ParamField path="player" type="Player" required>
+  The player to open the storage for
+</ParamField>
+
+<ParamField path="clanName" type="String" required>
+  The name of the clan
+</ParamField>
+
+<ParamField path="storageNumber" type="int" required>
+  The storage number to open (1-based)
+</ParamField>
+
+<ParamField path="skipDisabled" type="boolean" required>
+  If `true`, bypasses disabled storage checks
+</ParamField>
+
+```java
+clanManager.openClanStorage(player, "HelloClan", 1, false);
+```
+
+## Complete Example
+
+```java
+import com.cortezromeo.clansplus.api.ClanPlus;
+import com.cortezromeo.clansplus.api.ClanPlus.ClanManagerUtil;
+import com.cortezromeo.clansplus.api.enums.Rank;
+import org.bukkit.entity.Player;
+
+public void manageClan(Player player, String clanName) {
+    ClanPlus api = Bukkit.getServicesManager()
+        .getRegistration(ClanPlus.class)
+        .getProvider();
+    
+    ClanManagerUtil clanManager = api.getClanManager();
+    
+    // Check if clan exists
+    if (!clanManager.isClanExisted(clanName)) {
+        player.sendMessage("Clan does not exist!");
+        return;
+    }
+    
+    // Add player to clan
+    clanManager.addPlayerToAClan(player.getName(), clanName, false);
+    
+    // Alert clan members
+    clanManager.alertClan(clanName, player.getName() + " has joined the clan!");
+    
+    // Get clan statistics
+    HashMap<String, Integer> scores = clanManager.getClansScoreHashMap();
+    int clanScore = scores.getOrDefault(clanName, 0);
+    
+    player.sendMessage("You joined " + clanName + " (Score: " + clanScore + ")");
+}
+```

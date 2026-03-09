@@ -1,0 +1,532 @@
+---
+title: Skill System
+description: Upgradeable clan skills that provide combat bonuses
+icon: sparkles
+---
+
+The Skill System allows clans to unlock and upgrade special abilities that provide combat advantages during war events and regular gameplay. Skills are purchased using currency and increase in power as they level up.
+
+## Skill Types
+
+ClansPlus supports two skill type categories defined in `com.cortezromeo.clansplus.api.enums.SkillType`:
+
+- **PLUGIN** - Built-in skills provided by ClansPlus
+- **MYTHICMOBS** - Custom skills from MythicMobs integration
+
+## Built-in Plugin Skills
+
+Four built-in skills are available (from `PluginSkill.java`):
+
+### Critical Hit
+
+**Skill ID:** `CRITICAL_HIT`
+
+**Description:** Chance to deal increased damage when attacking enemy players.
+
+**Mechanics:**
+- Activates randomly based on configured chance per level
+- Damage is calculated using a configurable formula
+- Displays explosion particle effect on critical hits
+- Plays configurable sound effect
+
+**Configuration** (`skills.yml`):
+```yaml
+plugin-skills:
+  critical_hit:
+    enabled: true
+    ID: 1
+    name: "&cCritical Hit"
+    description: "Chance to deal bonus damage"
+    rate-to-activate:
+      level:
+        1: 10.0   # 10% chance at level 1
+        2: 15.0   # 15% chance at level 2
+        3: 20.0
+        4: 25.0
+        5: 30.0
+    on-hit-damage:
+      level:
+        1: "%damage% * 1.5"    # 1.5x damage
+        2: "%damage% * 2.0"    # 2x damage
+        3: "%damage% * 2.5"
+        4: "%damage% * 3.0"
+        5: "%damage% * 3.5"
+    activate-sound:
+      name: "ENTITY_PLAYER_ATTACK_CRIT"
+      pitch: 1
+      volume: 1
+```
+
+**Implementation** (from `CriticalHitSkill.java:53-84`):
+```java
+public static boolean onDamageEvent(SkillData skillData, 
+                                    EntityDamageByEntityEvent event) {
+    int skillLevel = damagerClanData.getSkillLevel().get(skillData.getId());
+    
+    if (skillLevel > 0) {
+        double chanceToActivate = skillData.getRateToActivate()
+            .get(skillLevel) / 100;
+        
+        if (new Random().nextDouble() < chanceToActivate) {
+            // Calculate and apply increased damage
+            double damage = CalculatorUtil.evaluate(
+                onHitDamageEvaluation.get(skillLevel)
+                    .replace("%damage%", String.valueOf(event.getDamage())));
+            event.setDamage(damage);
+            
+            // Visual and sound effects
+            spawnParticle("EXPLOSION");
+            playSound();
+        }
+    }
+}
+```
+
+### Life Steal
+
+**Skill ID:** `LIFE_STEAL`
+
+**Description:** Chance to heal when damaging enemy players.
+
+**Mechanics:**
+- Activates randomly based on configured chance
+- Healing is calculated from player's max health
+- Cannot exceed maximum health
+- Displays happy villager particle effect
+- Plays configurable sound
+
+**Configuration:**
+```yaml
+plugin-skills:
+  life_steal:
+    enabled: true
+    ID: 2
+    name: "&aLife Steal"
+    description: "Heal when damaging enemies"
+    rate-to-activate:
+      level:
+        1: 8.0
+        2: 12.0
+        3: 16.0
+        4: 20.0
+        5: 25.0
+    heal:
+      level:
+        1: "%playerMaxHealth% * 0.1"   # Heal 10% max HP
+        2: "%playerMaxHealth% * 0.15"  # Heal 15% max HP
+        3: "%playerMaxHealth% * 0.2"
+        4: "%playerMaxHealth% * 0.25"
+        5: "%playerMaxHealth% * 0.3"
+    activate-sound:
+      name: "ENTITY_PLAYER_LEVELUP"
+      pitch: 2
+      volume: 1
+```
+
+**Implementation** (from `LifeStealSkill.java:53-85`):
+```java
+public static boolean onDamageEvent(SkillData skillData, 
+                                    EntityDamageByEntityEvent event) {
+    if (skillLevel > 0 && new Random().nextDouble() < chanceToActivate) {
+        // Calculate healing
+        double revivingHealth = CalculatorUtil.evaluate(
+            healEvaluation.get(skillLevel)
+                .replace("%playerMaxHealth%", 
+                        String.valueOf(damager.getMaxHealth())));
+        
+        // Apply healing (capped at max health)
+        if (damager.getHealth() + revivingHealth > damager.getMaxHealth())
+            damager.setHealth(damager.getMaxHealth());
+        else 
+            damager.setHealth(damager.getHealth() + revivingHealth);
+        
+        // Effects
+        spawnParticle("VILLAGER_HAPPY");
+    }
+}
+```
+
+### Dodge
+
+**Skill ID:** `DODGE`
+
+**Description:** Chance to completely avoid incoming damage, with damage reflection at higher levels.
+
+**Mechanics:**
+- Activates when the player is attacked
+- Cancels the damage event completely
+- At configured level threshold, reflects damage back to attacker
+- Plays configurable sound effect
+
+**Configuration:**
+```yaml
+plugin-skills:
+  dodge:
+    enabled: true
+    ID: 3
+    name: "&bDodge"
+    description: "Avoid attacks and reflect damage"
+    rate-to-activate:
+      level:
+        1: 5.0
+        2: 8.0
+        3: 12.0
+        4: 16.0
+        5: 20.0
+    damage-reflection:
+      level-to-activate: 3  # Reflection starts at level 3
+      damage-reflection: "%damage% * 0.5"  # Reflect 50% of damage
+    activate-sound:
+      name: "ENTITY_PLAYER_ATTACK_SWEEP"
+      pitch: 1
+      volume: 1
+```
+
+**Implementation** (from `DodgeSkill.java:54-86`):
+```java
+public static boolean onDamageEvent(SkillData skillData, 
+                                    EntityDamageByEntityEvent event) {
+    // Checks victim's clan skill level (not attacker)
+    int skillLevel = victimClanData.getSkillLevel().get(skillData.getId());
+    
+    if (skillLevel > 0 && new Random().nextDouble() < chanceToActivate) {
+        // Cancel the incoming damage
+        event.setCancelled(true);
+        
+        // Reflect damage if level is high enough
+        if (skillLevel >= levelDamageReflection) {
+            double reflectDamage = CalculatorUtil.evaluate(
+                levelDamageEvaluation
+                    .replace("%damage%", String.valueOf(event.getDamage())));
+            damager.damage(reflectDamage);
+        }
+        
+        return true;  // Damage was dodged
+    }
+}
+```
+
+<Note>
+  Dodge is processed before other skills in war events. If a dodge succeeds, other damage-based skills don't activate.
+</Note>
+
+### Boost Score
+
+**Skill ID:** `BOOST_SCORE`
+
+**Description:** Earn bonus points when killing players or mobs during war events.
+
+**Mechanics:**
+- Activates automatically on every kill during war events
+- Adds fixed bonus points based on skill level
+- Applies to both player kills and mob kills
+- Bonus is displayed in clan broadcast messages
+
+**Configuration:**
+```yaml
+plugin-skills:
+  boost_score:
+    enabled: true
+    ID: 4
+    name: "&eBoost Score"
+    description: "Earn bonus points in war events"
+    boost:
+      level:
+        1: 5     # +5 bonus points
+        2: 10    # +10 bonus points
+        3: 15
+        4: 20
+        5: 30
+```
+
+**Implementation** (from `BoostScoreSkill.java:43-62`):
+```java
+public static boolean onDieEvent(SkillData skillData, String killerName, 
+                                 String victimName, boolean isMob) {
+    int skillLevel = killerClanData.getSkillLevel().get(skillData.getId());
+    
+    if (skillLevel > 0) {
+        // Add bonus score to clan
+        int bonusScore = boostScoreLevel.get(skillLevel);
+        killerClanData.setScore(killerClanData.getScore() + bonusScore);
+        
+        return true;
+    }
+    return false;
+}
+```
+
+**War Event Integration** (from `WarEvent.java:380-387`):
+```java
+// After awarding base kill points
+SkillData boostScoreSkillData = SkillManager.getSkillData()
+    .get(SkillManager.getSkillID(PluginSkill.BOOST_SCORE));
+
+if (boostScoreSkillData != null) {
+    boostScoreSkillData.onDie(boostScoreSkillData, killerName, victimName, false);
+    int bonusScore = BoostScoreSkill.boostScoreLevel.get(clanSkillLevel);
+    // Display in broadcast: "Killed player (+50 points) +10 bonus!"
+}
+```
+
+<Info>
+  Boost Score only activates during war events. It has no effect on regular gameplay outside of events.
+</Info>
+
+## Upgrading Skills
+
+### Upgrade Process
+
+<Steps>
+  <Step title="Open upgrade menu">
+    Use `/clansplus upgrade` to view all available upgrades.
+    
+    Requires the `UPGRADE` clan permission (default: MANAGER rank).
+  </Step>
+  
+  <Step title="Select a skill">
+    Navigate to the skills section and click on the skill you want to upgrade.
+  </Step>
+  
+  <Step title="View requirements">
+    Check the current level and upgrade cost:
+    - Currency type (WarPoint, Vault, or PlayerPoints)
+    - Cost amount for next level
+    - New skill effect at next level
+  </Step>
+  
+  <Step title="Purchase upgrade">
+    Click to purchase if your clan has sufficient currency.
+    
+    The currency is deducted from the clan's balance or the player's balance depending on currency type.
+  </Step>
+  
+  <Step title="Skill activated">
+    The skill is immediately active at the new level for all clan members.
+  </Step>
+</Steps>
+
+### Upgrade Costs
+
+Costs are configured in `upgrade.yml`:
+
+```yaml
+upgrade:
+  plugin-skills:
+    critical_hit:
+      currency-type: WARPOINT
+      price:
+        1: 500    # Cost to unlock level 1
+        2: 1000   # Cost to upgrade to level 2
+        3: 2000
+        4: 4000
+        5: 8000
+    life_steal:
+      currency-type: VAULT
+      price:
+        1: 10000
+        2: 25000
+        3: 50000
+        4: 100000
+        5: 200000
+```
+
+**Currency Types** (from `CurrencyType.java`):
+
+- **WARPOINT** - Earned from war events, stored in clan data
+- **VAULT** - Server economy money (requires Vault plugin)
+- **PLAYERPOINTS** - PlayerPoints plugin points
+
+### Currency Validation
+
+From `UpgradeManager.java:27-66`, the system validates currency before upgrades:
+
+```java
+public static boolean checkPlayerCurrency(Player player, 
+                                          CurrencyType currencyType, 
+                                          long value, boolean take) {
+    if (currencyType == CurrencyType.WARPOINT) {
+        // Check clan's war point balance
+        if (playerClanData.getWarPoint() >= value) {
+            if (take) playerClanData.setWarPoint(
+                playerClanData.getWarPoint() - value);
+            return true;
+        }
+    }
+    else if (currencyType == CurrencyType.VAULT) {
+        // Check player's economy balance via Vault
+        if (vault.getBalance(player) >= value) {
+            if (take) vault.withdrawPlayer(player, value);
+            return true;
+        }
+    }
+    else if (currencyType == CurrencyType.PLAYERPOINTS) {
+        // Check player's PlayerPoints balance
+        if (playerPointsAPI.look(player.getUniqueId()) >= value) {
+            if (take) playerPointsAPI.take(player.getUniqueId(), (int) value);
+            return true;
+        }
+    }
+    // Send "not enough currency" message if insufficient
+}
+```
+
+## Skill Effects
+
+### Combat Application
+
+Skills are applied during combat through event handlers:
+
+**During War Events** (from `WarEvent.java:335-349`):
+```java
+public void onDamage(EntityDamageByEntityEvent event) {
+    // Check dodge first (can cancel entire event)
+    SkillData dodgeSkillData = SkillManager.getSkillData()
+        .get(SkillManager.getSkillID(PluginSkill.DODGE));
+    if (dodgeSkillData.onDamage(event)) {
+        return;  // Attack was dodged, stop processing
+    }
+    
+    // Process all other clan skills
+    for (int skillID : damagerClanData.getSkillLevel().keySet()) {
+        SkillData skillData = SkillManager.getSkillData().get(skillID);
+        if (skillData != null && skillID != DODGE_ID) {
+            skillData.onDamage(skillData, event);
+        }
+    }
+}
+```
+
+### Skill Data Structure
+
+From `SkillData.java`, each skill contains:
+
+```java
+public abstract class SkillData {
+    private int id;                            // Unique skill ID
+    private SkillType skillType;               // PLUGIN or MYTHICMOBS
+    private boolean enabled;                   // Can be toggled on/off
+    private String name;                       // Display name
+    private String description;                // Description text
+    private String soundName;                  // Activation sound
+    private int soundPitch;                    // Sound pitch
+    private int soundVolume;                   // Sound volume
+    private HashMap<Integer, Double> rateToActivate;  // Chance per level
+    
+    // Abstract methods implemented by each skill
+    public abstract boolean onDamage(SkillData skillData, 
+                                     EntityDamageByEntityEvent event);
+    public abstract boolean onDie(SkillData skillData, String killerName, 
+                                  String victimName, boolean isMob);
+}
+```
+
+### Skill Registration
+
+Skills are registered at plugin startup (from `SkillManager.java`):
+
+```java
+public static void registerPluginSkill(int pluginSkill, SkillData skillData) {
+    getSkillData().put(pluginSkill, skillData);
+}
+
+// Each skill registers itself:
+CriticalHitSkill.registerSkill();
+LifeStealSkill.registerSkill();
+DodgeSkill.registerSkill();
+BoostScoreSkill.registerSkill();
+```
+
+## Viewing Skill Levels
+
+### In-Game Display
+
+View your clan's skill levels:
+- `/clansplus info <clan>` - Shows all skill levels
+- `/clansplus upgrade` - Shows current levels and upgrade options
+- GUI menus display skill levels with visual indicators
+
+### PlaceholderAPI
+
+Access skill levels in placeholders:
+
+```
+%clanplus_clan_skilllevel_<skillid>%
+```
+
+Example:
+```
+%clanplus_clan_skilllevel_1%  # Critical Hit level
+%clanplus_clan_skilllevel_2%  # Life Steal level
+%clanplus_clan_skilllevel_3%  # Dodge level
+%clanplus_clan_skilllevel_4%  # Boost Score level
+```
+
+Returns `0` if the skill is not unlocked.
+
+## Skill Configuration Files
+
+### skills.yml
+
+Defines skill properties:
+- Skill IDs and names
+- Activation rates per level
+- Effect formulas (damage, healing, etc.)
+- Sound and particle effects
+- Enable/disable toggles
+
+### upgrade.yml
+
+Defines upgrade costs:
+- Currency type per skill
+- Price for each level
+- Maximum level limits
+
+<Note>
+  Skill levels in clan data are stored as `HashMap<Integer, Integer>` where the key is skill ID and value is the level (0 = not unlocked).
+</Note>
+
+## Best Practices
+
+### For Clan Leaders
+
+1. **Prioritize skills** based on your clan's playstyle:
+   - Aggressive clans: Critical Hit and Life Steal
+   - Defensive clans: Dodge
+   - Event-focused clans: Boost Score
+
+2. **Balance spending** between skills and other upgrades (members, storage)
+
+3. **Coordinate with members** to farm war points for upgrades
+
+### For Server Admins
+
+1. **Balance activation rates** - Too high makes skills overpowered
+2. **Scale costs appropriately** - Higher levels should be significantly more expensive
+3. **Test formulas** - Use the calculator utility to verify damage/healing formulas
+4. **Monitor war events** - Ensure skills don't break event balance
+
+## Troubleshooting
+
+### Skill Not Activating
+
+Check:
+1. Skill is enabled in `skills.yml`
+2. Clan has the skill at level > 0
+3. Activation is based on chance - may not trigger every time
+4. For war event skills, ensure a war event is active
+
+### Incorrect Damage/Healing
+
+Verify:
+1. Formulas in `skills.yml` are syntactically correct
+2. Use valid operators: `+`, `-`, `*`, `/`, `%`
+3. Placeholders are spelled correctly: `%damage%`, `%playerMaxHealth%`
+
+### Currency Not Deducted
+
+Ensure:
+1. Currency type is configured correctly
+2. Required plugins (Vault, PlayerPoints) are installed
+3. Player/clan has sufficient balance
+4. Database is saving properly (`/clansplusadmin reload`)

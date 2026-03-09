@@ -1,0 +1,105 @@
+---
+title: 'ClanPlus Interface'
+description: 'Main interface for accessing the ClansPlus API'
+---
+
+## Overview
+
+The `ClanPlus` interface is the main entry point for accessing the ClansPlus API. It provides access to the plugin's data manager and clan manager utilities.
+
+## Getting the API Instance
+
+To use the ClansPlus API, you first need to obtain an instance of the `ClanPlus` interface through Bukkit's services manager.
+
+```java
+ClanPlus clansPlusAPI = Bukkit.getServicesManager()
+    .getRegistration(ClanPlus.class)
+    .getProvider();
+```
+
+## Checking Plugin Availability
+
+Before using the API, verify that ClansPlus is installed and enabled:
+
+```java
+@Override
+public void onEnable() {
+    if (Bukkit.getPluginManager().getPlugin("ClansPlus") == null) {
+        getLogger().severe("ClansPlus is not in the server!");
+        Bukkit.getPluginManager().disablePlugin(this);
+        return;
+    }
+}
+```
+
+## Main Methods
+
+### getPluginDataManager()
+
+Returns the plugin's data manager for accessing and manipulating clan and player data.
+
+<ResponseField name="return" type="PluginDataManagerUtil">
+  The data manager instance for database operations
+</ResponseField>
+
+```java
+PluginDataManagerUtil dataManager = clansPlusAPI.getPluginDataManager();
+```
+
+### getClanManager()
+
+Returns the clan manager for clan-related operations and utilities.
+
+<ResponseField name="return" type="ClanManagerUtil">
+  The clan manager instance for clan operations
+</ResponseField>
+
+```java
+ClanManagerUtil clanManager = clansPlusAPI.getClanManager();
+```
+
+## Complete Example
+
+Here's a complete example of initializing and using the ClansPlus API:
+
+```java
+import com.cortezromeo.clansplus.api.ClanPlus;
+import com.cortezromeo.clansplus.api.ClanPlus.ClanManagerUtil;
+import com.cortezromeo.clansplus.api.ClanPlus.PluginDataManagerUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class MyPlugin extends JavaPlugin {
+    
+    private ClanPlus clansPlusAPI;
+    private PluginDataManagerUtil dataManager;
+    private ClanManagerUtil clanManager;
+    
+    @Override
+    public void onEnable() {
+        // Check if ClansPlus is available
+        if (Bukkit.getPluginManager().getPlugin("ClansPlus") == null) {
+            getLogger().severe("ClansPlus is not installed!");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+        
+        // Initialize API
+        clansPlusAPI = Bukkit.getServicesManager()
+            .getRegistration(ClanPlus.class)
+            .getProvider();
+        
+        // Get managers
+        dataManager = clansPlusAPI.getPluginDataManager();
+        clanManager = clansPlusAPI.getClanManager();
+        
+        getLogger().info("ClansPlus API initialized successfully!");
+    }
+}
+```
+
+## Next Steps
+
+- Learn about [Data Manager](/api/data-manager) for database operations
+- Explore [Clan Manager](/api/clan-manager) for clan utilities
+- Check out the [IClanData](/api/models/clan-data) and [IPlayerData](/api/models/player-data) interfaces

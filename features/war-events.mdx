@@ -1,0 +1,371 @@
+---
+title: War Events
+description: Compete in clan war events for rewards and glory
+icon: swords
+---
+
+Clan War Events are competitive, time-limited events where clans compete to earn the highest score by defeating players and mobs. The system features automatic scheduling, real-time leaderboards, and configurable rewards.
+
+## Event System Overview
+
+The war event system is managed by `EventManager` and `WarEvent` classes, providing:
+
+- Scheduled automatic events based on configurable time frames
+- Real-time scoring for kills and mob defeats
+- Boss bar progress display
+- Discord webhook integration
+- Configurable rewards for top performers
+
+## Event Configuration
+
+War events are configured in the `events.yml` file under `events.clan-war-event`:
+
+```yaml
+events:
+  clan-war-event:
+    enabled: true
+    minimum-player-online: 5
+    event-time: 3600  # seconds
+    event-time-frame:
+      - "14:00:00"
+      - "20:00:00"
+```
+
+<Info>
+  The event automatically starts at the configured time frames if the minimum player count is met.
+</Info>
+
+## Starting and Ending Events
+
+### Automatic Scheduling
+
+Events start automatically when:
+1. Current server time matches a configured `event-time-frame`
+2. Online player count meets or exceeds `minimum-player-online`
+3. Events are enabled in the configuration
+
+### Manual Control
+
+Administrators can manually start or end events:
+
+```
+/clansplusadmin event start
+/clansplusadmin event end
+```
+
+<Note>
+  Manual start bypasses the minimum player requirement. Use the optional parameter to enforce it:
+  `/clansplusadmin event start true`
+</Note>
+
+### Event Duration
+
+Events run for the configured `event-time` duration (in seconds). A boss bar displays the remaining time to all online players.
+
+## Scoring System
+
+### Score Sources
+
+Clans earn points during war events from multiple sources:
+
+#### Player Kills
+
+Killing enemy clan members awards points:
+- Configured in `score-settings.player`
+- Only counts kills against non-allied clans
+- Dodge skill can prevent kills from counting
+- Boost Score skill adds bonus points
+
+**Implementation** (from `WarEvent.java:352`):
+```java
+killerClanData.setScore(killerClanData.getScore() + SCORE_PLAYER);
+clanScoreCollected.put(killerClanData.getName(), 
+    getClanScoreCollected(killerClanData.getName()) + SCORE_PLAYER);
+```
+
+#### Vanilla Mobs
+
+Killing vanilla Minecraft mobs awards points based on mob type:
+
+```yaml
+score-settings:
+  vanilla-mobs:
+    ZOMBIE: 10
+    SKELETON: 10
+    CREEPER: 15
+    SPIDER: 8
+    ENDERMAN: 25
+    WITHER_SKELETON: 30
+```
+
+Mob types use Bukkit `EntityType` names in uppercase.
+
+#### MythicMobs
+
+If MythicMobs plugin is installed, custom mobs can award points:
+
+```yaml
+score-settings:
+  mythicmobs-mobs:
+    SkeletonKing: 100
+    AncientDragon: 500
+```
+
+<Info>
+  MythicMobs integration is automatically detected. Points are configured by the mob's internal name.
+</Info>
+
+### World Requirements
+
+Optionally restrict scoring to specific worlds:
+
+```yaml
+world-requirement:
+  enabled: true
+  worlds:
+    - world
+    - world_nether
+```
+
+Kills and mob defeats in other worlds won't count toward scores.
+
+## Leaderboards
+
+The war event tracks multiple leaderboards:
+
+### Clan Score Leaderboard
+
+Tracks total points earned by each clan during the event:
+- Displayed in event ending messages
+- Used to determine reward distribution
+- Persists to permanent clan score
+
+### Player Damage Leaderboards
+
+Two player-specific leaderboards:
+
+1. **Most Damage Caused** - Total damage dealt to enemy players
+2. **Most Damage Collected (Tank)** - Total damage received from enemy players
+
+Both leaderboards:
+- Track damage in real-time during the event
+- Are cleared when the event ends
+- Can award individual player rewards
+
+### Viewing Leaderboards
+
+Leaderboards are displayed:
+- In event ending broadcast messages
+- Through PlaceholderAPI (during events)
+- Via Discord webhooks
+- In the event ending rewards
+
+<Note>
+  The number of top positions displayed is configured with `messages.event-ending.max-top`.
+</Note>
+
+## Event Notifications
+
+### Boss Bar
+
+A boss bar displays event progress to all players:
+
+```yaml
+event-boss-bar-settings:
+  enabled: true
+  title: "&6Clan War Event &7- &e%timeLeft%"
+  color: YELLOW
+  style: SOLID
+```
+
+Supported colors: `BLUE`, `GREEN`, `PINK`, `PURPLE`, `RED`, `WHITE`, `YELLOW`
+
+Supported styles: `SOLID`, `SEGMENTED_6`, `SEGMENTED_10`, `SEGMENTED_12`, `SEGMENTED_20`
+
+### Sound Effects
+
+Configure sounds for event start and end:
+
+```yaml
+sound-settings:
+  starting-sound:
+    name: "ENTITY_ENDER_DRAGON_GROWL"
+    pitch: 1
+    volume: 1
+  ending-sound:
+    name: "UI_TOAST_CHALLENGE_COMPLETE"
+    pitch: 1
+    volume: 1
+```
+
+### Join Notifications
+
+Players joining during an active event can receive notifications:
+
+```yaml
+player-join-notification:
+  enabled: true
+```
+
+Configure delay in `config.yml` to prevent spam on join.
+
+## Rewards and Prizes
+
+### Clan Rewards
+
+Top clans receive war points and execute custom commands:
+
+```yaml
+ending-rewards:
+  enabled: true
+  top-score-clans:
+    1:  # First place
+      warpoint: 1000
+      commands:
+        - "broadcast &6%clan% won the war event!"
+        - "give @a[clan=%clan%] diamond 64"
+    2:  # Second place
+      warpoint: 500
+      commands:
+        - "give @a[clan=%clan%] iron_ingot 32"
+```
+
+Placeholders:
+- `%clan%` - Winning clan name
+- `%top%` - Position (1, 2, 3, etc.)
+
+### Player Rewards
+
+Reward individual players for damage performance:
+
+```yaml
+ending-rewards:
+  most-damage-caused-players:
+    1:
+      warpoint: 500  # Added to player's clan
+      commands:
+        - "give %player% diamond_sword 1"
+        - "broadcast &e%player% dealt the most damage!"
+```
+
+Placeholders:
+- `%player%` - Player name
+- `%clan%` - Player's clan name
+
+<Info>
+  War points awarded to players are added to their clan's total war point balance.
+</Info>
+
+## Discord Integration
+
+War events can send rich embeds to Discord via webhooks:
+
+### Starting Message
+
+Configure in `discordsrv-warevent-starting.json`:
+
+```json
+{
+  "title": "Clan War Event Started!",
+  "description": "The war event has begun! Time remaining: %timeLeft%",
+  "color": 16753920,
+  "thumbnail": "https://example.com/war-icon.png",
+  "fields": [
+    {
+      "name": "Duration",
+      "value": "%timeLeft%",
+      "inline": true
+    },
+    {
+      "name": "Players Online",
+      "value": "%players%",
+      "inline": true
+    }
+  ]
+}
+```
+
+### Ending Message
+
+Configure in `discordsrv-warevent-ending.json` with leaderboard placeholders:
+
+- `%topScoreClaimed_<top>_name%` - Clan name at position
+- `%topScoreClaimed_<top>_score%` - Clan score at position
+- `%topDamage_<top>_name%` - Top damage dealer name
+- `%topTank_<top>_name%` - Top tank name
+- `%totalDamagesCaused%` - Total damage in event
+- `%totalScoreCollected%` - Total score earned
+
+<Note>
+  Set the Discord webhook URL in `config.yml` under `soft-depend.discord-webhook.url`.
+</Note>
+
+## Combat Features
+
+### Friendly Fire Protection
+
+During war events:
+- Clan members cannot damage each other
+- Allied clans cannot damage each other
+- Self-damage is prevented
+
+**Implementation** (from `WarEvent.java:313`):
+```java
+public void onDamage(EntityDamageByEntityEvent event) {
+    // Checks if damager and victim are in same clan or allied
+    // Processes skill effects (Dodge, Critical Hit, Life Steal)
+    // Tracks damage statistics
+}
+```
+
+### Skill Integration
+
+Clan skills affect war event performance:
+
+- **Boost Score** - Adds bonus points to kills
+- **Critical Hit** - Chance to deal increased damage
+- **Dodge** - Chance to avoid damage entirely
+- **Life Steal** - Heal from damage dealt
+
+See [Skill System](/features/skill-system) for details.
+
+### Combat Cooldown
+
+Prevent players from using certain commands during combat:
+
+```yaml
+combat-command-cooldown:
+  enabled: true
+  seconds: 10
+```
+
+Players in combat cannot use teleport or other protected commands.
+
+## Event Statistics
+
+The WarEvent class tracks comprehensive statistics:
+
+| Statistic | Type | Description |
+|-----------|------|-------------|
+| `playerDamagesCaused` | `HashMap<String, Long>` | Damage dealt by each player |
+| `playerDamagesCollected` | `HashMap<String, Long>` | Damage taken by each player |
+| `clanScoreCollected` | `HashMap<String, Long>` | Points earned by each clan |
+| `TIMELEFT` | `long` | Remaining event time in seconds |
+| `STARTING` | `boolean` | Whether event is currently active |
+
+<Info>
+  Statistics are reset when each event ends to ensure clean data for the next event.
+</Info>
+
+## Administrative Tools
+
+Admins can manage war events with special commands:
+
+```
+/clansplusadmin event start [checkPlayerSize]
+/clansplusadmin event end
+/clansplusadmin clanresetall score
+/clansplusadmin clanresetall warpoint
+```
+
+Reset commands clear all clan statistics for a fresh start.

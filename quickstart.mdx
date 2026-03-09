@@ -1,80 +1,540 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get started with ClansPlus - Create your first clan and explore core features
 ---
 
-## Get started in three steps
+## Your First Clan
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This guide will walk you through creating and managing your first clan in ClansPlus.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+Make sure you have completed the [installation](/installation) before proceeding.
 </Note>
+
+## Creating a Clan
+
+<Steps>
+  <Step title="Check Requirements">
+    Before creating a clan, ensure you have:
+    
+    - Sufficient currency (default: $1000 if Vault is enabled)
+    - Not already in another clan
+    - A unique clan name in mind
+    
+    <Warning>
+    Clan names must be 3-20 characters and cannot contain spaces or special characters (except in custom names).
+    </Warning>
+  </Step>
+
+  <Step title="Create Your Clan">
+    Use the create command with your desired clan name:
+    
+    ```
+    /clan create MyClan
+    ```
+    
+    **Successful Output:**
+    ```
+    [CLAN] | Successfully created clan MyClan!
+    ```
+    
+    The server will broadcast your clan creation to all players (if enabled in config).
+    
+    <Note>
+    **Prohibited Names**: Some names like "admin", "staff", "moderator" are blocked by default. Check `config.yml` to modify the prohibited list.
+    </Note>
+  </Step>
+
+  <Step title="Access Clan Menu">
+    Open your clan's management interface:
+    
+    ```
+    /clan menu
+    ```
+    
+    This opens an interactive GUI where you can:
+    - View clan information
+    - Manage members
+    - Configure settings
+    - Upgrade skills
+    - Manage allies
+    - Access clan storage
+  </Step>
+
+  <Step title="Customize Your Clan">
+    Set a custom name with color codes (requires `clanplus.setcustomname` permission):
+    
+    ```
+    /clan setcustomname &b&lElite &6&lWarriors
+    ```
+    
+    Set a clan announcement message:
+    
+    ```
+    /clan setmessage Welcome to the best clan on the server!
+    ```
+    
+    <Note>
+    Custom names support hex colors: `&#3498ebBlue Clan`
+    </Note>
+  </Step>
+</Steps>
+
+## Essential Commands
+
+Here are the most important commands you'll use:
+
+### Clan Management
+
+<CodeGroup>
+```bash Create Clan
+/clan create <name>
+# Creates a new clan with the specified name
+# Costs currency if enabled in config
+```
+
+```bash Clan Menu
+/clan menu
+# Opens the main clan GUI interface
+# Access all features from here
+```
+
+```bash Clan Info
+/clan info [clanName]
+# View information about your clan or another clan
+# Shows members, score, creation date, etc.
+```
+
+```bash Clan List
+/clan list
+# Browse all clans on the server
+# Sorted by score or creation date
+```
+</CodeGroup>
+
+### Member Management
+
+<CodeGroup>
+```bash Invite Player
+/clan invite <player>
+# Invite a player to join your clan
+# They have 30 seconds to accept (configurable)
+```
+
+```bash Accept Invitation
+/clan accept
+# Accept a pending clan invitation
+```
+
+```bash Reject Invitation
+/clan reject
+# Reject a pending clan invitation
+```
+
+```bash Kick Member
+/clan kick <player>
+# Remove a member from your clan
+# Requires appropriate rank permission
+```
+</CodeGroup>
+
+### Clan Features
+
+<CodeGroup>
+```bash Set Spawn
+/clan setspawn
+# Set the clan spawn point at your location
+# Requires clanplus.setspawn permission
+```
+
+```bash Teleport to Spawn
+/clan spawn
+# Teleport to your clan's spawn point
+# Has countdown if enabled (default: 5 seconds)
+```
+
+```bash Clan Chat
+/clan chat
+# Toggle clan-only chat mode
+# Messages only visible to clan members
+```
+
+```bash Leave Clan
+/clan leave
+# Leave your current clan
+# Leaders must transfer ownership or disband first
+```
+</CodeGroup>
+
+### Rank Management (Leaders Only)
+
+<CodeGroup>
+```bash Set Manager
+/clan setmanager <player>
+# Promote a member to manager rank
+# Managers have elevated permissions
+```
+
+```bash Remove Manager
+/clan removemanager <player>
+# Demote a manager back to member
+```
+
+```bash Transfer Ownership
+/clan setowner <player>
+# Transfer clan leadership to another member
+# You become a regular member
+```
+
+```bash Disband Clan
+/clan disband
+# Permanently delete your clan
+# Requires confirmation command
+# Warning: This cannot be undone!
+```
+</CodeGroup>
+
+## Inviting Members
+
+Grow your clan by inviting other players:
+
+<Steps>
+  <Step title="Invite a Player">
+    ```
+    /clan invite PlayerName
+    ```
+    
+    The invited player receives a notification:
+    ```
+    [CLAN] | PlayerName invited you to join clan MyClan
+    You have 30 seconds to decide
+    /clan accept to accept
+    /clan reject to reject
+    ```
+  </Step>
+
+  <Step title="Player Accepts or Rejects">
+    The invited player chooses:
+    
+    **To Accept:**
+    ```
+    /clan accept
+    ```
+    
+    **To Reject:**
+    ```
+    /clan reject
+    ```
+  </Step>
+
+  <Step title="Manage Your Members">
+    View and manage members through the GUI:
+    
+    ```
+    /clan menu
+    ```
+    
+    Click "Members" to:
+    - View all members and their ranks
+    - Check online/offline status
+    - Promote/demote members
+    - Kick members
+  </Step>
+</Steps>
+
+<Note>
+**Member Limits**: Default is 5 members. Upgrade your clan to increase the maximum member count.
+</Note>
+
+## Understanding Ranks
+
+ClansPlus has a three-tier rank system:
+
+<Tabs>
+  <Tab title="Leader">
+    **Highest Rank** - Full control over the clan
+    
+    **Permissions:**
+    - All member and manager permissions
+    - Set clan permissions
+    - Transfer ownership
+    - Disband clan
+    - Cannot be kicked or demoted
+    
+    <Note>
+    Only one leader per clan. Transfer ownership with `/clan setowner`.
+    </Note>
+  </Tab>
+  
+  <Tab title="Manager">
+    **Middle Rank** - Elevated permissions set by leader
+    
+    **Default Permissions:**
+    - Invite and kick members
+    - Upgrade clan
+    - Manage allies
+    - All member permissions
+    
+    <Note>
+    Leaders can customize manager permissions in the clan settings.
+    </Note>
+  </Tab>
+  
+  <Tab title="Member">
+    **Base Rank** - Standard clan member
+    
+    **Default Permissions:**
+    - Use clan chat
+    - Teleport to spawn
+    - Access clan storage
+    - View clan info
+    
+    <Note>
+    Leaders can grant additional permissions to members via `/clan setpermission` or the GUI.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Setting Up Clan Spawn
+
+<Steps>
+  <Step title="Go to Desired Location">
+    Navigate to where you want your clan spawn point to be (e.g., your clan base).
+  </Step>
+
+  <Step title="Set the Spawn Point">
+    ```
+    /clan setspawn
+    ```
+    
+    **Output:**
+    ```
+    [CLAN] | Successfully set clan spawn to (X, Y, Z) (World: world)
+    ```
+    
+    <Warning>
+    Some worlds may be blacklisted in `config.yml`. Check the `set-spawn-settings` section.
+    </Warning>
+  </Step>
+
+  <Step title="Test Teleportation">
+    Members can now teleport to the spawn:
+    
+    ```
+    /clan spawn
+    ```
+    
+    By default, there's a 5-second countdown. Players must stand still during the countdown:
+    ```
+    [CLAN] | You will be teleported in 5 seconds, please do not move.
+    ```
+  </Step>
+</Steps>
+
+## Using Clan Chat
+
+Communicate privately with your clan members:
+
+<Steps>
+  <Step title="Enable Clan Chat">
+    ```
+    /clan chat
+    ```
+    
+    **Output:**
+    ```
+    [CLAN] | Clan chat enabled.
+    ```
+  </Step>
+
+  <Step title="Send Messages">
+    All your messages now go to clan chat only:
+    
+    ```
+    Hello clan members!
+    ```
+    
+    Only your clan members see this message.
+  </Step>
+
+  <Step title="Disable Clan Chat">
+    Return to global chat:
+    
+    ```
+    /clan chat
+    ```
+    
+    **Output:**
+    ```
+    [CLAN] | Clan chat disabled.
+    ```
+  </Step>
+</Steps>
+
+<Note>
+You can also type the cancel word (default: `?cancel`) to quickly exit clan chat mode.
+</Note>
+
+## Upgrading Your Clan
+
+Enhance your clan's capabilities through upgrades:
+
+<Steps>
+  <Step title="Open Upgrade Menu">
+    ```
+    /clan upgrade
+    ```
+    
+    Or through the clan menu GUI.
+  </Step>
+
+  <Step title="Choose an Upgrade">
+    Available upgrades include:
+    
+    - **Maximum Members**: Increase member slots
+    - **Critical Hit**: Boost damage output
+    - **Dodge**: Chance to avoid damage
+    - **Life Steal**: Heal when dealing damage
+    - **Boost Score**: Increase score gain rate
+    - **Max Storages**: Add more clan storage slots
+  </Step>
+
+  <Step title="Purchase Upgrade">
+    Click the upgrade in the GUI to purchase with currency or war points.
+    
+    <Warning>
+    Skills have level requirements. You must upgrade level 1 before level 2, etc.
+    </Warning>
+  </Step>
+</Steps>
+
+## Initial Configuration Tips
+
+Optimize ClansPlus for your server:
+
+### For Small Servers (< 50 players)
+
+```yaml config.yml
+database:
+  type: YAML  # Simpler setup
+  
+clan-settings:
+  creating-clan-settings:
+    currency-requirement:
+      enabled: false  # Free clan creation
+    maximum-member-default: 10  # Allow larger clans
+```
+
+### For Large Servers (50+ players)
+
+```yaml config.yml
+database:
+  type: H2  # Better performance
+  smart-loading:
+    enabled: true  # Faster startup
+  auto-save:
+    enabled: true
+    seconds: 600  # Save every 10 minutes
+    
+clan-settings:
+  creating-clan-settings:
+    currency-requirement:
+      enabled: true
+      type: VAULT
+      value: 5000  # Higher cost to prevent spam
+    maximum-member-default: 5
+```
+
+### Customize Clan Creation Cost
+
+<CodeGroup>
+```yaml Using Vault (Money)
+clan-settings:
+  creating-clan-settings:
+    currency-requirement:
+      enabled: true
+      type: VAULT
+      value: 1000  # $1000 to create clan
+```
+
+```yaml Using PlayerPoints
+clan-settings:
+  creating-clan-settings:
+    currency-requirement:
+      enabled: true
+      type: PLAYERPOINTS
+      value: 500  # 500 points to create clan
+```
+
+```yaml Free Clans
+clan-settings:
+  creating-clan-settings:
+    currency-requirement:
+      enabled: false  # No cost
+```
+</CodeGroup>
+
+### Configure Permissions
+
+Set default permissions for new clans:
+
+```yaml config.yml
+clan-settings:
+  creating-clan-settings:
+    permission-default:
+      INVITE: MANAGER        # Managers+ can invite
+      KICK: MANAGER          # Managers+ can kick
+      SETCUSTOMNAME: LEADER  # Only leader can set custom name
+      SETICON: LEADER        # Only leader can set icon
+      SPAWN: MEMBER          # Everyone can use /clan spawn
+      SETSPAWN: LEADER       # Only leader can set spawn
+      SETMESSAGE: MANAGER    # Managers+ can set message
+      CHAT: MEMBER           # Everyone can use clan chat
+      UPGRADE: MANAGER       # Managers+ can upgrade
+      MANAGEALLY: MANAGER    # Managers+ can manage allies
+      OPENSTORAGE: MEMBER    # Everyone can access storage
+```
+
+<Note>
+**Permission Hierarchy**: LEADER > MANAGER > MEMBER. If MEMBER has a permission, MANAGER and LEADER automatically have it too.
+</Note>
+
+## Command Aliases
+
+ClansPlus supports multiple command aliases:
+
+```bash
+/clan = /clansplus = /clanplus = /clans = /guild = /guilds = /team = /teams
+```
+
+Use whichever fits your server theme!
+
+## Next Steps
+
+Now that you've created your first clan, explore more features:
+
+<CardGroup cols={2}>
+  <Card title="Commands Reference" icon="terminal" href="/commands/player-commands">
+    Complete list of all player and admin commands
+  </Card>
+  
+  <Card title="Configuration Guide" icon="gear" href="/configuration/setup">
+    Detailed configuration options and customization
+  </Card>
+  
+  <Card title="Clan Skills" icon="wand-magic-sparkles" href="/concepts/skills">
+    Learn about the clan skill system and upgrades
+  </Card>
+  
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Develop plugins that integrate with ClansPlus
+  </Card>
+</CardGroup>
+
+## Need Help?
+
+If you encounter issues or have questions:
+
+<Card title="Join Discord Community" icon="discord" href="https://discord.gg/NWbTVddmBM">
+  Get support from the ClansPlus community and developer
+</Card>

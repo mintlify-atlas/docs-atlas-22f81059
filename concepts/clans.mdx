@@ -1,0 +1,216 @@
+---
+title: Clans
+description: Understanding the clan system in ClansPlus
+icon: users
+---
+
+Clans are groups of players that work together to compete, build, and dominate. Each clan has its own identity, members, and properties that define its presence on the server.
+
+## What is a Clan?
+
+A clan is a player-created organization with the following core properties:
+
+<CardGroup cols={2}>
+  <Card title="Identity" icon="id-badge">
+    - **Name**: Unique identifier (unchangeable)
+    - **Custom Name**: Formatted display name with colors
+    - **Icon**: Visual representation (material or custom head)
+  </Card>
+  
+  <Card title="Membership" icon="users">
+    - **Owner**: The clan leader
+    - **Members**: List of all clan members
+    - **Max Members**: Configurable member limit
+  </Card>
+  
+  <Card title="Progress" icon="chart-line">
+    - **Score**: Points earned through activities
+    - **War Points**: Special currency from events
+    - **Created Date**: Timestamp of clan creation
+  </Card>
+  
+  <Card title="Features" icon="star">
+    - **Message**: Clan MOTD shown to members
+    - **Spawn Point**: Clan home location
+    - **Storage**: Shared inventories
+  </Card>
+</CardGroup>
+
+## Clan Properties
+
+Based on the source code (`IClanData` interface), each clan stores:
+
+### Core Data
+
+```java
+// Identity
+String name;              // Unique clan name
+String customName;        // Formatted display name
+String owner;             // Owner's username
+
+// Membership
+List<String> members;     // All member usernames
+int maxMembers;           // Member capacity
+
+// Progress
+int score;                // Clan score
+long warPoint;            // War event points
+long createdDate;         // Creation timestamp
+```
+
+### Customization
+
+```java
+String message;           // Clan MOTD
+ItemType iconType;        // Icon type (MATERIAL or CUSTOM_HEAD)
+String iconValue;         // Material name or head texture
+Location spawnPoint;      // Clan home location
+```
+
+### Advanced Features
+
+```java
+List<String> allies;                      // Allied clan names
+HashMap<Integer, Integer> skillLevel;     // Skill ID -> Level mapping
+HashMap<Subject, Rank> subjectPermission; // Permission system
+HashMap<Integer, Inventory> storage;      // Shared inventories
+int maxStorage;                           // Storage capacity
+```
+
+## Creating a Clan
+
+Players can create clans through the plugin's command system. When a clan is created:
+
+1. A unique name is registered
+2. The creator becomes the owner with `LEADER` rank
+3. Default permissions are set
+4. Initial skill levels are configured
+5. Creation date is recorded
+
+<Note>
+Clan names must be unique across the server and cannot be changed after creation. However, clans can set a custom display name with color codes.
+</Note>
+
+## Managing Your Clan
+
+### Setting Properties
+
+Clan leaders can customize various properties:
+
+<Tabs>
+  <Tab title="Display">
+    - **Custom Name**: Add colors and formatting to your clan's display name
+    - **Icon**: Choose a material or custom player head as your clan icon
+    - **Message**: Set a message of the day for your members
+  </Tab>
+  
+  <Tab title="Location">
+    - **Spawn Point**: Set a home location where members can teleport
+    - Requires appropriate permissions based on rank
+  </Tab>
+  
+  <Tab title="Members">
+    - Invite new players to join
+    - Kick members (requires permissions)
+    - Promote members to manager rank
+    - Transfer ownership to another member
+  </Tab>
+</Tabs>
+
+### Permissions System
+
+Clans use a permission system based on `Subject` enums:
+
+- **INVITE**: Invite players to the clan
+- **KICK**: Remove members from the clan
+- **SETCUSTOMNAME**: Change clan display name
+- **SETICON**: Change clan icon
+- **SPAWN**: Teleport to clan spawn
+- **SETSPAWN**: Set the clan spawn point
+- **SETMESSAGE**: Update clan message
+- **SETMANAGER**: Promote members to manager
+- **REMOVEMANAGER**: Demote managers
+- **CHAT**: Use clan chat
+- **UPGRADE**: Upgrade clan skills
+- **MANAGEALLY**: Manage allied clans
+- **OPENSTORAGE**: Access clan storage
+
+Each permission can be configured to require a specific rank (Leader, Manager, or Member).
+
+## Allies System
+
+Clans can form alliances with other clans:
+
+### How Allies Work
+
+1. **Sending Requests**: A clan sends an ally invitation to another clan
+2. **Pending Invitations**: The target clan receives the invitation
+3. **Acceptance**: Once accepted, both clans become allies
+4. **Benefits**: Allied clans cannot damage each other during war events
+
+```java
+// Ally data structure
+List<String> allies;           // Current allied clans
+List<String> allyInvitation;   // Pending ally invitations
+```
+
+<Warning>
+Allied clans are protected from each other during war events. Make sure to only ally with clans you trust!
+</Warning>
+
+### Managing Allies
+
+Clan members with the `MANAGEALLY` permission can:
+
+- Send ally requests to other clans
+- Accept or reject incoming ally requests
+- Remove existing allies
+- View all current allies
+
+## Clan Storage
+
+Clans have shared storage inventories that members can access:
+
+- **Multiple Inventories**: Each clan can have multiple storage inventories (numbered 1, 2, 3, etc.)
+- **Capacity**: The `maxStorage` property determines how many inventories are unlocked
+- **Permissions**: Access controlled by the `OPENSTORAGE` permission
+- **Persistence**: All items are saved to the database
+
+```java
+HashMap<Integer, Inventory> storage;  // Storage number -> Inventory
+int maxStorage;                       // Number of unlocked storage inventories
+```
+
+## Discord Integration
+
+Clans can optionally integrate with Discord:
+
+```java
+long discordChannelID;      // Discord channel ID for clan
+String discordJoinLink;     // Invite link to clan Discord
+```
+
+This allows for:
+- Automatic notifications to Discord channels
+- Integration with clan events and activities
+- Enhanced communication outside the game
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Ranks" icon="ranking-star" href="/concepts/ranks">
+    Learn about clan hierarchy and permissions
+  </Card>
+  
+  <Card title="Skills" icon="wand-magic-sparkles" href="/concepts/skills">
+    Discover clan skills and upgrades
+  </Card>
+  
+  <Card title="Events" icon="trophy" href="/concepts/events">
+    Participate in clan war events
+  </Card>
+  
+  <Card title="Commands" icon="terminal" href="/commands/player-commands">
+    View all available clan commands
+  </Card>
+</CardGroup>

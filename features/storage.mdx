@@ -1,0 +1,324 @@
+---
+title: Clan Storage
+description: Shared inventory system for clan members
+icon: box
+---
+
+Clan Storage provides a shared inventory system where clan members can store and access items collectively. Each clan can have multiple storage inventories with configurable access permissions.
+
+## Storage System Overview
+
+The storage system is implemented through:
+- Multiple numbered storage inventories per clan (configurable maximum)
+- Permission-based access control
+- Persistent storage across server restarts
+- Integration with clan upgrade system
+
+## Enabling Storage
+
+Clan storage must be enabled in `config.yml`:
+
+```yaml
+storage-settings:
+  enabled: true
+  max-inventory: 10  # Maximum storage slots per clan
+```
+
+<Note>
+  If storage is disabled, players will receive the "Feature disabled" message when attempting to access storage.
+</Note>
+
+## Accessing Storage
+
+### For Players
+
+Open clan storage through the GUI menu:
+
+```
+/clansplus menu
+```
+
+Then select the storage option, or directly:
+
+```
+/clansplus storage <number>
+```
+
+<Info>
+  Players must have the `OPENSTORAGE` clan permission to access storage. By default, this is set to `MEMBER` rank.
+</Info>
+
+### For Administrators
+
+Admins can open any clan's storage:
+
+```
+/clansplusadmin openClanStorage <clan> <number>
+```
+
+This bypasses permission checks and the enabled setting.
+
+## Storage Management
+
+### Multiple Storage Slots
+
+Each clan can have multiple storage inventories:
+
+- Numbered from 1 to the clan's maximum storage limit
+- Maximum limit starts at the default value (configured in `max-storage-default`)
+- Can be increased through the upgrade system
+
+**Example storage structure:**
+```
+Storage #1 - Basic items
+Storage #2 - Ores and minerals
+Storage #3 - Food and potions
+```
+
+### Storage Inventory Interface
+
+From `ClanManager.java:176-215`, the storage system:
+
+1. **Validates access** - Checks if storage is enabled and player has permission
+2. **Checks storage number** - Ensures the requested storage is within the clan's limit
+3. **Creates inventory** - Automatically creates storage if it doesn't exist
+4. **Opens GUI** - Displays the storage inventory to the player
+
+```java
+public static void openClanStorage(Player player, String clanName, 
+                                   int storageNumber, boolean skipDisabled) {
+    // Validate settings and permissions
+    if (storageNumber > clanData.getMaxStorage()) {
+        // Storage is locked - clan needs to upgrade
+    }
+    
+    // Create storage if it doesn't exist
+    if (clanData.getStorageHashMap().get(storageNumber) == null) {
+        // Initialize new storage inventory
+    }
+    
+    // Open the storage to player
+}
+```
+
+## Access Controls
+
+### Permission System
+
+Storage access is controlled by the `OPENSTORAGE` subject permission:
+
+**Default Configuration:**
+```yaml
+clan-setting:
+  permission:
+    default:
+      OPENSTORAGE: MEMBER  # All members can access
+```
+
+**Customizing Permissions:**
+
+Clan leaders can change who can access storage:
+
+<Steps>
+  <Step title="Open permission settings">
+    Use `/clansplus setpermission` to open the permission GUI.
+  </Step>
+  
+  <Step title="Select OPENSTORAGE">
+    Click on the "Open storage" permission option.
+  </Step>
+  
+  <Step title="Set required rank">
+    Choose the minimum rank required:
+    - **LEADER** - Only the clan owner
+    - **MANAGER** - Managers and owner
+    - **MEMBER** - All clan members
+  </Step>
+</Steps>
+
+<Note>
+  If `permission.default.forced` is enabled in `config.yml`, clan leaders cannot customize permissions.
+</Note>
+
+### Locked Storage Slots
+
+Storage slots beyond a clan's maximum are locked:
+
+- Attempting to open a locked slot shows a "Storage locked" message
+- The storage number is validated against `clanData.getMaxStorage()`
+- Clans must upgrade their max storage to unlock additional slots
+
+**Lock behavior** (from `ClanManager.java:187-190`):
+```java
+if (storageNumber > clanData.getMaxStorage()) {
+    MessageUtil.sendMessage(player, Messages.STORAGE_LOCKED
+        .replace("%storageNumber%", String.valueOf(storageNumber)));
+    return;
+}
+```
+
+## Storage Data Structure
+
+From `IClanData.java:90-96`, storage is managed as:
+
+```java
+// HashMap mapping storage number to Bukkit Inventory
+HashMap<Integer, Inventory> getStorageHashMap();
+void setStorageHashMap(HashMap<Integer, Inventory> inventory);
+
+// Maximum unlocked storage slots
+int getMaxStorage();
+void setMaxStorage(int maxStorage);
+```
+
+### Persistence
+
+Storage inventories are:
+- Saved when the inventory is closed (`CloseInventoryEvent`)
+- Stored in the clan database (YAML, H2, or MySQL)
+- Automatically loaded when accessed
+- Preserved during server restarts
+
+<Info>
+  Version 2.8 fixed a critical dupe bug by adding close inventory event handling to save clan database.
+</Info>
+
+## Upgrading Storage
+
+Clans can increase their maximum storage capacity through the upgrade system:
+
+### Upgrade Process
+
+<Steps>
+  <Step title="Open upgrade menu">
+    Use `/clansplus upgrade` to view available upgrades.
+  </Step>
+  
+  <Step title="Select storage upgrade">
+    Navigate to the max storage upgrade option.
+  </Step>
+  
+  <Step title="Purchase upgrade">
+    Pay the required cost (configured in `upgrade.yml`):
+    - Cost can be in WarPoints, Vault currency, or PlayerPoints
+    - Each level increases max storage by a configured amount
+  </Step>
+  
+  <Step title="Unlock new storage">
+    The new storage slot is immediately available for use.
+  </Step>
+</Steps>
+
+**Broadcast message on upgrade** (from `Messages` configuration):
+```
+clan-broadcast-upgrade-max-storages: "&aStorage upgraded! New max: %maxStorage%"
+```
+
+## Storage Configuration
+
+### config.yml Settings
+
+```yaml
+storage-settings:
+  # Enable/disable the entire storage system
+  enabled: true
+  
+  # Maximum storage inventories the system supports
+  max-inventory: 10
+
+# Default max storage for new clans
+max-storage-default: 3
+```
+
+### upgrade.yml Settings
+
+```yaml
+upgrade:
+  max-storage:
+    currency-type: WARPOINT  # WARPOINT, VAULT, or PLAYERPOINTS
+    price:
+      4: 1000   # Cost to upgrade from 3 to 4 storages
+      5: 2000   # Cost to upgrade from 4 to 5 storages
+      6: 3500
+      7: 5000
+      8: 7000
+      9: 9000
+      10: 12000
+```
+
+<Note>
+  The max-inventory value in config.yml sets the absolute maximum. Clans cannot upgrade beyond this limit regardless of how the upgrade.yml is configured.
+</Note>
+
+## Storage Best Practices
+
+### Organization
+
+1. **Designate storage purposes** - Use different storage numbers for different item types
+2. **Set clear rules** - Establish clan rules about what can be stored
+3. **Regular maintenance** - Periodically clean out unused items
+4. **Trust management** - Adjust permissions based on member trustworthiness
+
+### Security
+
+- **Restrict access for new members** - Consider raising OPENSTORAGE requirement to MANAGER for valuable items
+- **Use multiple storages** - Keep valuable items in higher-numbered storages that are less frequently accessed
+- **Monitor activity** - Check who has access and when storage is opened
+
+### Performance
+
+- **Avoid overfilling** - Large inventories can cause lag when opened
+- **Use appropriate database** - MySQL or H2 recommended for large servers
+- **Regular backups** - Use `/clansplusadmin backup` to backup clan data including storage
+
+<Info>
+  Storage contents are included in clan database backups. Regularly backup your server to prevent item loss.
+</Info>
+
+## Common Issues
+
+### "Feature Disabled" Message
+
+If players see this when trying to access storage:
+
+1. Check `storage-settings.enabled` in `config.yml`
+2. Reload the plugin: `/clansplusadmin reload`
+3. Verify the player has `OPENSTORAGE` permission in their clan
+
+### "Storage Locked" Message
+
+This appears when:
+
+- The storage number exceeds the clan's `maxStorage` value
+- The clan needs to purchase storage upgrades
+- The storage number is invalid (less than 1)
+
+### "Storage Number Exceeds Limit" Message
+
+This occurs when:
+
+- The requested storage number is higher than `max-inventory` in config.yml
+- The system maximum has been reached
+- Solution: Increase `max-inventory` or use lower storage numbers
+
+## API Access
+
+Developers can interact with clan storage programmatically:
+
+```java
+// Get clan data
+IClanData clanData = clansPlusAPI.getPluginDataManager()
+    .getClanDatabase("YourClanName");
+
+// Access storage inventories
+HashMap<Integer, Inventory> storages = clanData.getStorageHashMap();
+Inventory storage1 = storages.get(1);
+
+// Modify max storage
+clanData.setMaxStorage(5);
+
+// Open storage programmatically
+ClanManager.openClanStorage(player, "YourClanName", 1, true);
+```
+
+See the [API Reference](/api-reference) for more details.

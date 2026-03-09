@@ -1,0 +1,326 @@
+---
+title: 'Basic Setup'
+description: 'Configure ClansPlus with config.yml settings'
+icon: 'wrench'
+---
+
+## Overview
+
+The `config.yml` file is the main configuration file for ClansPlus. It controls core plugin behavior, performance settings, and default clan settings.
+
+## File Location
+
+```
+plugins/ClansPlus/config.yml
+```
+
+## Debug Settings
+
+<ParamField path="debug.enabled" type="boolean" default="false">
+  Enable debug mode for troubleshooting. Only enable when necessary.
+</ParamField>
+
+<ParamField path="debug.prefix" type="string" default="&e[CLAN+ DEBUG] ">
+  Prefix for debug messages displayed in console and chat.
+</ParamField>
+
+## Language Configuration
+
+<ParamField path="language" type="string" default="en">
+  Language to be used for displaying messages.
+  
+  **Available Options:**
+  - `en` - English
+  - `vi` - Vietnamese
+  
+  See [Messages Configuration](/configuration/messages) for customization.
+</ParamField>
+
+## Progress Bar Display
+
+<ParamField path="progress-bar.total-bars" type="integer" default="20">
+  Total number of bars to display in progress indicators.
+</ParamField>
+
+<ParamField path="progress-bar.symbol.completed" type="string" default="&2&m━">
+  Symbol and color for completed portion of progress bar.
+</ParamField>
+
+<ParamField path="progress-bar.symbol.not-completed" type="string" default="&f&m━">
+  Symbol and color for incomplete portion of progress bar.
+</ParamField>
+
+## Clan Creation Settings
+
+<ParamField path="clan-settings.creating-clan-settings.currency-requirement.enabled" type="boolean" default="true">
+  Whether creating a clan requires currency payment.
+</ParamField>
+
+<ParamField path="clan-settings.creating-clan-settings.currency-requirement.type" type="string" default="VAULT">
+  Currency type required to create a clan.
+  
+  **Available Options:**
+  - `VAULT` - Economy via Vault
+  - `PLAYERPOINTS` - PlayerPoints plugin
+</ParamField>
+
+<ParamField path="clan-settings.creating-clan-settings.currency-requirement.value" type="number" default="1000">
+  Cost in the specified currency to create a clan.
+</ParamField>
+
+<ParamField path="clan-settings.creating-clan-settings.maximum-member-default" type="integer" default="5">
+  Default maximum number of members when a clan is created.
+</ParamField>
+
+<ParamField path="clan-settings.creating-clan-settings.icon-default.type" type="string" default="MATERIAL">
+  Default icon type for new clans.
+  
+  **Options:**
+  - `MATERIAL` - Minecraft material
+  - `CUSTOMHEAD` - Custom player head
+</ParamField>
+
+<ParamField path="clan-settings.creating-clan-settings.icon-default.value" type="string" default="ITEM_FRAME">
+  Material name or custom head value for the default clan icon.
+</ParamField>
+
+<ParamField path="clan-settings.creating-clan-settings.max-storage-default" type="integer" default="1">
+  Number of storage inventories available to new clans. Set to 0 to disable.
+</ParamField>
+
+### Skill Level Defaults
+
+<ParamField path="clan-settings.creating-clan-settings.skill-level-default" type="object">
+  Default skill levels by skill ID for newly created clans.
+  
+  ```yaml
+  skill-level-default:
+    1: 0  # Skill ID 1 starts at level 0
+    2: 0  # Skill ID 2 starts at level 0
+    3: 0  # Skill ID 3 starts at level 0
+    4: 0  # Skill ID 4 starts at level 0
+  ```
+  
+  You can add or remove skill entries as needed.
+</ParamField>
+
+### Creation Broadcast
+
+<ParamField path="clan-settings.creating-clan-settings.creation-broadcast" type="array">
+  Messages broadcast to the entire server when a clan is created. One random message from the list is selected.
+  
+  **Available Placeholders:**
+  - `%player%` - Player who created the clan
+  - `%clanName%` - Name of the new clan
+  
+  Set to a single empty line `- ''` to disable broadcasts.
+  
+  ```yaml
+  creation-broadcast:
+    - '&#3498eb&lNEW CLAN&r &#35d11d&l| &e%player% &fjust created a new clan named &b%clanName%&f.'
+    - '&#3498eb&lNEW CLAN&r &#35d11d&l| &b%clanName% &fjust got created by &e%player%&f.'
+  ```
+</ParamField>
+
+## Spawn Settings
+
+<ParamField path="clan-settings.spawn-settings.enabled" type="boolean" default="true">
+  Enable clan spawn teleportation feature.
+</ParamField>
+
+<ParamField path="clan-settings.spawn-settings.countdown.enabled" type="boolean" default="true">
+  Enable countdown before teleporting to clan spawn.
+</ParamField>
+
+<ParamField path="clan-settings.spawn-settings.countdown.seconds" type="integer" default="5">
+  Seconds to wait before teleporting. Player must stand still.
+</ParamField>
+
+### Set Spawn Settings
+
+<ParamField path="clan-settings.set-spawn-settings.blacklist-worlds.enabled" type="boolean" default="true">
+  Enable world blacklist for setting clan spawn points.
+</ParamField>
+
+<ParamField path="clan-settings.set-spawn-settings.blacklist-worlds.worlds" type="array">
+  List of world names where spawn points cannot be set.
+  
+  ```yaml
+  worlds:
+    - blacklistworld1
+    - blacklistworld2
+  ```
+</ParamField>
+
+## Invite Settings
+
+<ParamField path="clan-settings.invite-settings.time-to-accept" type="integer" default="30">
+  Seconds a player has to accept a clan invitation before it expires.
+</ParamField>
+
+## Clan Name Settings
+
+<ParamField path="clan-settings.clan-name-settings.prohibited-name" type="array">
+  List of names that cannot be used for clan names or custom names.
+  
+  ```yaml
+  prohibited-name:
+    - admin
+    - staff
+    - moderator
+  ```
+</ParamField>
+
+<ParamField path="clan-settings.clan-name-settings.prohibited-character" type="array">
+  List of characters not allowed in clan names.
+  
+  <Note>
+  The `&` character is still allowed for custom names to enable color codes.
+  </Note>
+  
+  ```yaml
+  prohibited-character:
+    - '&'
+  ```
+</ParamField>
+
+<ParamField path="clan-settings.clan-name-settings.minimum-length.clan-name" type="integer" default="3">
+  Minimum character length for clan names (excluding color codes).
+</ParamField>
+
+<ParamField path="clan-settings.clan-name-settings.maximum-length.clan-name" type="integer" default="20">
+  Maximum character length for clan names (excluding color codes).
+</ParamField>
+
+<ParamField path="clan-settings.clan-name-settings.minimum-length.clan-custom-name" type="integer" default="3">
+  Minimum character length for custom clan names (excluding color codes).
+</ParamField>
+
+<ParamField path="clan-settings.clan-name-settings.maximum-length.clan-custom-name" type="integer" default="30">
+  Maximum character length for custom clan names (excluding color codes).
+</ParamField>
+
+## Chat Settings
+
+<ParamField path="chat-settings.use-paper-async-chat" type="boolean" default="false">
+  Use Paper's async chat event system.
+  
+  <Warning>
+  Some chat plugins have not yet supported Paper async chat. Setting this to `true` may cause issues where ClansPlus still sends messages even when using clan chat features.
+  </Warning>
+</ParamField>
+
+<ParamField path="chat-settings.stop-using-chat-word" type="string" default="?cancel">
+  Word players can type to cancel chat interactions like setting custom names or messages.
+</ParamField>
+
+## Sign Input Settings
+
+<ParamField path="sign-input-settings.time-out" type="integer" default="15">
+  Seconds before sign input prompts (like search) automatically close.
+</ParamField>
+
+## Vanish Settings
+
+<ParamField path="vanish-settings.hide-vanish-player.enabled" type="boolean" default="true">
+  Whether to show vanished players in GUIs. When enabled, vanished players appear as OFFLINE.
+  
+  <Note>
+  Supports SuperVanish, PremiumVanish, EssentialsX, VanishNoPacket, and other vanish plugins.
+  </Note>
+</ParamField>
+
+## Storage Settings
+
+<ParamField path="storage-settings.enabled" type="boolean" default="true">
+  Enable clan storage feature.
+</ParamField>
+
+<ParamField path="storage-settings.slots" type="integer" default="54">
+  Number of inventory slots per storage (standard chest = 27, double chest = 54).
+  
+  <Warning>
+  Changing this value after clans have created storage may cause item loss!
+  </Warning>
+</ParamField>
+
+<ParamField path="storage-settings.max-storage" type="integer" default="30">
+  Maximum number of storage inventories a clan can have.
+  
+  Storage numbers exceeding this limit cannot be used or upgraded.
+</ParamField>
+
+## Custom Heads Support
+
+<ParamField path="custom-heads.API-v2.enabled" type="boolean" default="true">
+  Use minecraft-heads.com API v2 for custom head support.
+  
+  <Note>
+  ClansPlus version 2.8 and below used API v1, which is outdated. API v2 will become mandatory in future versions.
+  </Note>
+</ParamField>
+
+<ParamField path="custom-heads.API-v2.custom-key" type="string" default="">
+  Custom API key for Patreon supporters of minecraft-heads.com. Leave blank to use the default key.
+  
+  If you have a Patreon account linked with minecraft-heads.com, you can use your custom key to access more heads.
+</ParamField>
+
+## Join Messages
+
+<ParamField path="clan-settings.messages-settings.on-join.war-event.enabled" type="boolean" default="true">
+  Send war event status to players when they join.
+</ParamField>
+
+<ParamField path="clan-settings.messages-settings.on-join.war-event.delay" type="integer" default="1">
+  Delay in seconds before sending war event status.
+</ParamField>
+
+<ParamField path="clan-settings.messages-settings.on-join.clan-broadcast.enabled" type="boolean" default="true">
+  Send clan broadcast messages to players when they join.
+</ParamField>
+
+<ParamField path="clan-settings.messages-settings.on-join.clan-broadcast.delay" type="integer" default="2">
+  Delay in seconds before sending clan broadcast.
+</ParamField>
+
+## Example Configuration
+
+```yaml config.yml
+# Basic setup example
+debug:
+  enabled: false
+  prefix: '&e[CLAN+ DEBUG] '
+
+language: en
+
+clan-settings:
+  creating-clan-settings:
+    currency-requirement:
+      enabled: true
+      type: VAULT
+      value: 1000
+    maximum-member-default: 5
+    icon-default:
+      type: MATERIAL
+      value: ITEM_FRAME
+    max-storage-default: 1
+
+  spawn-settings:
+    enabled: true
+    countdown:
+      enabled: true
+      seconds: 5
+
+  invite-settings:
+    time-to-accept: 30
+
+storage-settings:
+  enabled: true
+  slots: 54
+  max-storage: 30
+```
+
+<Note>
+After modifying `config.yml`, restart your server for changes to take effect.
+</Note>

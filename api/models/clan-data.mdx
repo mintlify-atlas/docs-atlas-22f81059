@@ -1,0 +1,295 @@
+---
+title: 'IClanData'
+description: 'Interface for managing clan data and properties'
+---
+
+## Overview
+
+The `IClanData` interface provides methods to access and modify clan information, including membership, permissions, skills, storage, and Discord integration.
+
+## Interface Methods
+
+### Basic Information
+
+<ResponseField name="getName()" type="String">
+  Returns the clan's internal name identifier.
+</ResponseField>
+
+<ResponseField name="setName(String name)" type="void">
+  Sets the clan's internal name identifier.
+  
+  **Parameters:**
+  - `name` - The clan's internal name
+</ResponseField>
+
+<ResponseField name="getCustomName()" type="String">
+  Returns the clan's custom display name with formatting.
+</ResponseField>
+
+<ResponseField name="setCustomName(String customName)" type="void">
+  Sets the clan's custom display name.
+  
+  **Parameters:**
+  - `customName` - The formatted display name
+</ResponseField>
+
+<ResponseField name="getOwner()" type="String">
+  Returns the UUID or username of the clan owner.
+</ResponseField>
+
+<ResponseField name="setOwner(String owner)" type="void">
+  Sets the clan owner.
+  
+  **Parameters:**
+  - `owner` - The owner's identifier
+</ResponseField>
+
+<ResponseField name="getMessage()" type="String">
+  Returns the clan's message or description.
+</ResponseField>
+
+<ResponseField name="setMessage(String message)" type="void">
+  Sets the clan's message.
+  
+  **Parameters:**
+  - `message` - The clan message
+</ResponseField>
+
+### Scoring and Points
+
+<ResponseField name="getScore()" type="int">
+  Returns the clan's current score.
+</ResponseField>
+
+<ResponseField name="setScore(int score)" type="void">
+  Sets the clan's score.
+  
+  **Parameters:**
+  - `score` - The score value
+</ResponseField>
+
+<ResponseField name="getWarPoint()" type="long">
+  Returns the clan's war points.
+</ResponseField>
+
+<ResponseField name="setWarPoint(long warPoint)" type="void">
+  Sets the clan's war points.
+  
+  **Parameters:**
+  - `warPoint` - The war point value
+</ResponseField>
+
+<ResponseField name="getWarning()" type="int">
+  Returns the number of warnings the clan has received.
+</ResponseField>
+
+<ResponseField name="setWarning(int warning)" type="void">
+  Sets the clan's warning count.
+  
+  **Parameters:**
+  - `warning` - The warning count
+</ResponseField>
+
+### Membership
+
+<ResponseField name="getMembers()" type="List<String>">
+  Returns a list of all clan member identifiers.
+</ResponseField>
+
+<ResponseField name="setMembers(List<String> members)" type="void">
+  Sets the clan's member list.
+  
+  **Parameters:**
+  - `members` - List of member identifiers
+</ResponseField>
+
+<ResponseField name="getMaxMembers()" type="int">
+  Returns the maximum number of members allowed in the clan.
+</ResponseField>
+
+<ResponseField name="setMaxMembers(int maxMembers)" type="void">
+  Sets the maximum member limit.
+  
+  **Parameters:**
+  - `maxMembers` - The maximum number of members
+</ResponseField>
+
+### Metadata
+
+<ResponseField name="getCreatedDate()" type="long">
+  Returns the clan creation timestamp in milliseconds.
+</ResponseField>
+
+<ResponseField name="setCreatedDate(long createdDate)" type="void">
+  Sets the clan creation timestamp.
+  
+  **Parameters:**
+  - `createdDate` - Unix timestamp in milliseconds
+</ResponseField>
+
+### Icon Configuration
+
+<ResponseField name="getIconType()" type="ItemType">
+  Returns the type of icon used for the clan (MATERIAL, CUSTOMHEAD, or PLAYERHEAD).
+</ResponseField>
+
+<ResponseField name="setIconType(ItemType itemType)" type="void">
+  Sets the clan icon type.
+  
+  **Parameters:**
+  - `itemType` - The icon type from ItemType enum
+</ResponseField>
+
+<ResponseField name="getIconValue()" type="String">
+  Returns the value/identifier for the clan icon.
+</ResponseField>
+
+<ResponseField name="setIconValue(String iconValue)" type="void">
+  Sets the clan icon value.
+  
+  **Parameters:**
+  - `iconValue` - Material name, head texture, or player name
+</ResponseField>
+
+### Location
+
+<ResponseField name="getSpawnPoint()" type="Location">
+  Returns the clan's spawn point location.
+</ResponseField>
+
+<ResponseField name="setSpawnPoint(Location spawnPoint)" type="void">
+  Sets the clan spawn point.
+  
+  **Parameters:**
+  - `spawnPoint` - Bukkit Location object
+</ResponseField>
+
+### Alliances
+
+<ResponseField name="getAllies()" type="List<String>">
+  Returns a list of allied clan names.
+</ResponseField>
+
+<ResponseField name="setAllies(List<String> allies)" type="void">
+  Sets the clan's ally list.
+  
+  **Parameters:**
+  - `allies` - List of allied clan names
+</ResponseField>
+
+<ResponseField name="getAllyInvitation()" type="List<String>">
+  Returns a list of pending ally invitations.
+</ResponseField>
+
+<ResponseField name="setAllyInvitation(List<String> allyInvitation)" type="void">
+  Sets the pending ally invitation list.
+  
+  **Parameters:**
+  - `allyInvitation` - List of clan names with pending invitations
+</ResponseField>
+
+### Skills and Permissions
+
+<ResponseField name="getSkillLevel()" type="HashMap<Integer, Integer>">
+  Returns a map of skill IDs to their levels.
+</ResponseField>
+
+<ResponseField name="setSkillLevel(HashMap<Integer, Integer> skillLevel)" type="void">
+  Sets the clan's skill levels.
+  
+  **Parameters:**
+  - `skillLevel` - Map of skill ID to level
+</ResponseField>
+
+<ResponseField name="getSubjectPermission()" type="HashMap<Subject, Rank>">
+  Returns a map of permissions (subjects) to the minimum rank required.
+</ResponseField>
+
+<ResponseField name="setSubjectPermission(HashMap<Subject, Rank> subjectPermission)" type="void">
+  Sets the clan's permission configuration.
+  
+  **Parameters:**
+  - `subjectPermission` - Map of Subject to Rank
+</ResponseField>
+
+### Discord Integration
+
+<ResponseField name="getDiscordChannelID()" type="long">
+  Returns the linked Discord channel ID.
+</ResponseField>
+
+<ResponseField name="setDiscordChannelID(long discordChannelID)" type="void">
+  Sets the Discord channel ID.
+  
+  **Parameters:**
+  - `discordChannelID` - Discord channel ID
+</ResponseField>
+
+<ResponseField name="getDiscordJoinLink()" type="String">
+  Returns the Discord server invite link.
+</ResponseField>
+
+<ResponseField name="setDiscordJoinLink(String discordJoinLink)" type="void">
+  Sets the Discord invite link.
+  
+  **Parameters:**
+  - `discordJoinLink` - Discord invite URL
+</ResponseField>
+
+### Storage
+
+<ResponseField name="getStorageHashMap()" type="HashMap<Integer, Inventory>">
+  Returns a map of storage page numbers to Bukkit Inventory objects.
+</ResponseField>
+
+<ResponseField name="setStorageHashMap(HashMap<Integer, Inventory> inventory)" type="void">
+  Sets the clan's storage inventories.
+  
+  **Parameters:**
+  - `inventory` - Map of page number to Inventory
+</ResponseField>
+
+<ResponseField name="getMaxStorage()" type="int">
+  Returns the maximum number of storage pages available.
+</ResponseField>
+
+<ResponseField name="setMaxStorage(int maxStorage)" type="void">
+  Sets the maximum storage pages.
+  
+  **Parameters:**
+  - `maxStorage` - Maximum number of storage pages
+</ResponseField>
+
+## Usage Example
+
+```java
+import com.cortezromeo.clansplus.api.storage.IClanData;
+import com.cortezromeo.clansplus.api.enums.Rank;
+import com.cortezromeo.clansplus.api.enums.Subject;
+
+// Get clan data from API
+IClanData clanData = clansPlusAPI.getClanData("MyClan");
+
+// Access basic information
+String clanName = clanData.getName();
+String displayName = clanData.getCustomName();
+int score = clanData.getScore();
+
+// Modify clan properties
+clanData.setMessage("Welcome to our clan!");
+clanData.setMaxMembers(50);
+
+// Check permissions
+HashMap<Subject, Rank> permissions = clanData.getSubjectPermission();
+Rank requiredRank = permissions.get(Subject.INVITE);
+
+// Manage members
+List<String> members = clanData.getMembers();
+System.out.println("Current members: " + members.size() + "/" + clanData.getMaxMembers());
+```
+
+## See Also
+
+- [IPlayerData](/api/models/player-data) - Player data interface
+- [Enums](/api/models/enums) - Enum types used in data models
+- [ClanPlus Interface](/api/clanplus-interface) - Main API interface

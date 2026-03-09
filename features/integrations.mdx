@@ -1,0 +1,534 @@
+---
+title: Integrations
+description: Third-party plugin integrations and soft dependencies
+icon: plug
+---
+
+ClansPlus integrates with several popular Minecraft plugins to extend functionality and provide seamless integration with your server's ecosystem.
+
+## PlaceholderAPI
+
+[PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) allows you to display clan information in chat, scoreboards, holograms, and other plugins.
+
+### Installation
+
+<Steps>
+  <Step title="Install PlaceholderAPI">
+    Download and install PlaceholderAPI from SpigotMC.
+  </Step>
+  
+  <Step title="Restart server">
+    Restart your server to load PlaceholderAPI.
+  </Step>
+  
+  <Step title="Verify integration">
+    ClansPlus automatically registers its placeholders on startup.
+    Check console for: `[PlaceholderAPI] Successfully registered expansion: clanplus`
+  </Step>
+</Steps>
+
+### Clan Information Placeholders
+
+Display information about a player's clan:
+
+| Placeholder | Description | Example Output |
+|-------------|-------------|----------------|
+| `%clanplus_clan_name%` | Clan name | `Warriors` |
+| `%clanplus_clan_customname%` | Colored custom name | `&6&lWarriors` |
+| `%clanplus_clan_formatname%` | Custom name or regular name | `Warriors` |
+| `%clanplus_clan_owner%` | Clan owner's name | `Steve` |
+| `%clanplus_clan_message%` | Clan message/MOTD | `Welcome!` |
+| `%clanplus_clan_score%` | Current clan score | `1500` |
+| `%clanplus_clan_warpoint%` | Clan war points | `5000` |
+| `%clanplus_clan_warning%` | Warning count | `0` |
+| `%clanplus_clan_maxmembers%` | Maximum member slots | `20` |
+| `%clanplus_clan_createddate%` | Creation date (milliseconds) | `1678901234567` |
+| `%clanplus_clan_format_createddate%` | Formatted date | `03/15/2023` |
+| `%clanplus_clan_members%` | List of members | `[Steve, Alex]` |
+| `%clanplus_clan_allies%` | List of allied clans | `[Defenders]` |
+| `%clanplus_clan_discordchannelid%` | Discord channel ID | `123456789` |
+| `%clanplus_clan_discordjoinlink%` | Discord invite link | `discord.gg/abc123` |
+
+### Player Information Placeholders
+
+Display information about a player's clan membership:
+
+| Placeholder | Description | Example Output |
+|-------------|-------------|----------------|
+| `%clanplus_player_rank%` | Player's rank | `LEADER` |
+| `%clanplus_player_format_rank%` | Formatted rank | `&c&lLeader` |
+| `%clanplus_player_joindate%` | Join date (milliseconds) | `1678901234567` |
+| `%clanplus_player_format_joindate%` | Formatted join date | `03/15/2023` |
+| `%clanplus_player_scorecollected%` | Score contributed | `450` |
+| `%clanplus_player_lastactivated%` | Last activity (milliseconds) | `1678901234567` |
+| `%clanplus_player_format_lastactivated%` | Formatted last activity | `03/15/2023` |
+
+### Skill Level Placeholders
+
+Display clan skill levels:
+
+```
+%clanplus_clan_skilllevel_<skillid>%
+```
+
+Replace `<skillid>` with the skill ID from `skills.yml`:
+
+- `%clanplus_clan_skilllevel_1%` - Critical Hit level
+- `%clanplus_clan_skilllevel_2%` - Life Steal level
+- `%clanplus_clan_skilllevel_3%` - Dodge level
+- `%clanplus_clan_skilllevel_4%` - Boost Score level
+
+### Permission Placeholders
+
+Display clan permission requirements:
+
+```
+%clanplus_clan_subjectpermission_<subject>%
+%clanplus_clan_format_subjectpermission_<subject>%
+```
+
+Replace `<subject>` with permission name (lowercase):
+
+- `%clanplus_clan_subjectpermission_invite%` - Returns: `LEADER`
+- `%clanplus_clan_format_subjectpermission_invite%` - Returns: `&c&lLeader`
+
+### Top Clans Placeholders
+
+Display clan leaderboards:
+
+```
+%clanplus_top_score_name_<number>%
+%clanplus_top_score_value_<number>%
+```
+
+Replace `<number>` with position (1, 2, 3, etc.):
+
+- `%clanplus_top_score_name_1%` - First place clan name
+- `%clanplus_top_score_value_1%` - First place clan score
+- `%clanplus_top_score_name_2%` - Second place clan name
+- `%clanplus_top_score_value_2%` - Second place clan score
+
+<Info>
+  If a position doesn't exist or no clan is found, placeholders return the value configured in `soft-depend.placeholderapi.no-clan`.
+</Info>
+
+### Customizing Placeholder Output
+
+Customize placeholder formats in `config.yml`:
+
+```yaml
+soft-depend:
+  placeholderapi:
+    no-clan: "&7No Clan"
+    clan-name: "%value%"
+    clan-customname: "&r%value%"
+    clan-formatname: "&r%value%"
+    top-score-name: "&e#%top% &7- &6%clanName%"
+    top-score-value: "&6%value%"
+    # ... and many more
+```
+
+The `%value%` placeholder is replaced with the actual data.
+
+### Usage Examples
+
+**In Chat Format** (with ChatControl, EssentialsX, etc.):
+```yaml
+format: "[%clanplus_clan_formatname%&r] &7%player%&r: %message%"
+```
+Output: `[Warriors] Steve: Hello!`
+
+**In Scoreboard** (with FeatherBoard, AnimatedScoreboard, etc.):
+```yaml
+lines:
+  - "&6Your Clan"
+  - "&e%clanplus_clan_name%"
+  - "&7Score: &f%clanplus_clan_score%"
+  - "&7Rank: %clanplus_player_format_rank%"
+```
+
+**In Tab List** (with TAB plugin):
+```yaml
+header:
+  - "&6&lTop Clans"
+  - "&e1. %clanplus_top_score_name_1% &7- &f%clanplus_top_score_value_1%"
+  - "&e2. %clanplus_top_score_name_2% &7- &f%clanplus_top_score_value_2%"
+```
+
+## Discord Webhook Integration
+
+Send clan events and war event updates to Discord channels using webhooks.
+
+### Setup
+
+<Steps>
+  <Step title="Create Discord webhook">
+    In your Discord server:
+    1. Go to Server Settings → Integrations → Webhooks
+    2. Click "New Webhook"
+    3. Configure name and channel
+    4. Copy the webhook URL
+  </Step>
+  
+  <Step title="Configure ClansPlus">
+    Add the webhook URL to `config.yml`:
+    ```yaml
+    soft-depend:
+      discord-webhook:
+        url: "https://discord.com/api/webhooks/..."
+    ```
+  </Step>
+  
+  <Step title="Customize messages">
+    Edit the JSON files in your ClansPlus plugin folder:
+    - `discordsrv-warevent-starting.json`
+    - `discordsrv-warevent-ending.json`
+  </Step>
+</Steps>
+
+### War Event Messages
+
+**Starting Message** (`discordsrv-warevent-starting.json`):
+```json
+{
+  "title": "Clan War Event Started!",
+  "description": "The battle has begun!",
+  "color": 16753920,
+  "thumbnail": "https://example.com/war-icon.png",
+  "fields": [
+    {
+      "fieldtype": "normal",
+      "name": "Duration",
+      "value": "%timeLeft%",
+      "inline": true
+    },
+    {
+      "fieldtype": "normal",
+      "name": "Players Online",
+      "value": "%players%",
+      "inline": true
+    }
+  ],
+  "footer": {
+    "text": "ClansPlus War Event",
+    "icon_url": "https://example.com/icon.png"
+  },
+  "placeholders": {
+    "timeLeft": {
+      "hhmmss": "%hh%h %mm%m %ss%s",
+      "mmss": "%mm%m %ss%s",
+      "ss": "%ss%s"
+    }
+  }
+}
+```
+
+**Ending Message** (`discordsrv-warevent-ending.json`):
+```json
+{
+  "title": "War Event Ended!",
+  "description": "Results are in!",
+  "color": 3066993,
+  "maxtop": 3,
+  "fields": [
+    {
+      "fieldtype": "normal",
+      "name": "Top Clan",
+      "value": "%topScoreClaimed_1_name% - %topScoreClaimed_1_score% points",
+      "inline": false
+    },
+    {
+      "fieldtype": "normal",
+      "name": "Most Damage",
+      "value": "%topDamage_1_name% - %topDamage_1_score% damage",
+      "inline": true
+    }
+  ],
+  "placeholders": {
+    "unknown": "None"
+  }
+}
+```
+
+### Available Placeholders
+
+**Starting message:**
+- `%timeLeft%` - Event duration remaining
+- `%players%` - Current online players
+
+**Ending message:**
+- `%topScoreClaimed_<N>_name%` - Clan name at position N
+- `%topScoreClaimed_<N>_score%` - Clan score at position N
+- `%topDamage_<N>_name%` - Top damage dealer name
+- `%topDamage_<N>_score%` - Damage dealt
+- `%topTank_<N>_name%` - Top damage taker name
+- `%topTank_<N>_score%` - Damage taken
+- `%totalDamagesCaused%` - Total damage in event
+- `%totalDamagesCollected%` - Total damage taken
+- `%totalScoreCollected%` - Total score earned
+
+<Note>
+  Set `maxtop` in the JSON to control how many top positions are shown. The placeholder system will use the `unknown` value for positions without data.
+</Note>
+
+### Implementation Details
+
+From `DiscordSupport.java:24-36`, messages are sent asynchronously:
+
+```java
+public void sendMessage(String message) {
+    DiscordWebhook discordWebhook = new DiscordWebhook(WEBHOOK_URL);
+    
+    ClansPlus.support.getFoliaLib().getScheduler().runAsync(task -> {
+        discordWebhook.addEmbed(new EmbedObject()
+            .setDescription(message));
+        try {
+            discordWebhook.execute();
+        } catch (Exception exception) {
+            // Error logged to console
+        }
+    });
+}
+```
+
+## Vault / Economy Integration
+
+[Vault](https://www.spigotmc.org/resources/vault.34315/) provides economy integration for clan creation costs and skill upgrades.
+
+### Installation
+
+<Steps>
+  <Step title="Install Vault">
+    Download Vault from SpigotMC.
+  </Step>
+  
+  <Step title="Install economy plugin">
+    Install an economy plugin like:
+    - EssentialsX
+    - CMI
+    - BetterEconomy (for Folia servers)
+  </Step>
+  
+  <Step title="Restart and verify">
+    Restart server and check console:
+    ```
+    [ClansPlus] Vault economy hooked successfully!
+    ```
+  </Step>
+</Steps>
+
+<Info>
+  **Folia Users:** Standard Vault doesn't work on Folia. Use [VaultUnlocked](https://www.spigotmc.org/resources/vaultunlocked.117277/) and BetterEconomy instead.
+</Info>
+
+### Configuration
+
+Enable Vault currency for various features:
+
+**Clan Creation:**
+```yaml
+clan-setting:
+  create:
+    enabled: true
+    type: VAULT  # Use economy money
+    currency: 10000  # Cost in server currency
+```
+
+**Skill Upgrades** (`upgrade.yml`):
+```yaml
+upgrade:
+  plugin-skills:
+    critical_hit:
+      currency-type: VAULT
+      price:
+        1: 5000
+        2: 10000
+        3: 20000
+```
+
+### Currency Validation
+
+From `UpgradeManager.java:42-51`, Vault integration checks balances:
+
+```java
+if (currencyType == CurrencyType.VAULT) {
+    if (ClansPlus.support.getVault() == null) {
+        player.sendMessage("Error: Vault plugin is missing");
+        return false;
+    }
+    if (ClansPlus.support.getVault().getBalance(player) >= value) {
+        if (take) ClansPlus.support.getVault().withdrawPlayer(player, value);
+        return true;
+    }
+}
+```
+
+<Note>
+  Money is withdrawn from the player initiating the action (e.g., the player creating the clan or purchasing the upgrade).
+</Note>
+
+## PlayerPoints Integration
+
+[PlayerPoints](https://www.spigotmc.org/resources/playerpoints.80745/) provides an alternative currency system.
+
+### Installation
+
+<Steps>
+  <Step title="Install PlayerPoints">
+    Download PlayerPoints from SpigotMC.
+  </Step>
+  
+  <Step title="Restart server">
+    ClansPlus automatically detects PlayerPoints on startup.
+  </Step>
+  
+  <Step title="Configure currency">
+    Set currency type to `PLAYERPOINTS` in configs.
+  </Step>
+</Steps>
+
+### Configuration
+
+**Clan Creation:**
+```yaml
+clan-setting:
+  create:
+    type: PLAYERPOINTS
+    currency: 1000  # Cost in PlayerPoints
+```
+
+**Upgrades:**
+```yaml
+upgrade:
+  plugin-skills:
+    life_steal:
+      currency-type: PLAYERPOINTS
+      price:
+        1: 500
+        2: 1000
+```
+
+### Implementation
+
+From `UpgradeManager.java:53-63`:
+
+```java
+if (currencyType == CurrencyType.PLAYERPOINTS) {
+    if (ClansPlus.support.getPlayerPointsAPI() == null) {
+        player.sendMessage("Error: PlayerPoints plugin is missing");
+        return false;
+    }
+    if (ClansPlus.support.getPlayerPointsAPI()
+            .look(player.getUniqueId()) >= value) {
+        if (take) ClansPlus.support.getPlayerPointsAPI()
+            .take(player.getUniqueId(), (int) value);
+        return true;
+    }
+}
+```
+
+## Other Soft Dependencies
+
+### SuperVanish / PremiumVanish
+
+Integration with vanish plugins:
+
+- Vanished players don't appear in invite lists
+- Vanished members show as OFFLINE in member lists
+- Configurable in `config.yml`:
+
+```yaml
+vanish-settings:
+  enabled: true
+```
+
+### MythicMobs
+
+Custom mob integration:
+
+- MythicMobs can award points in war events
+- Configure scores in `events.yml`:
+
+```yaml
+score-settings:
+  mythicmobs-mobs:
+    BossZombie: 100
+    DragonKing: 500
+```
+
+- Automatically detected if MythicMobs is installed
+- Falls back to vanilla mobs if MythicMobs is not present
+
+### Floodgate (GeyserMC)
+
+Bedrock player support:
+
+- Full compatibility with Bedrock Edition players via Floodgate
+- Economy transactions work correctly for Bedrock players
+- No special configuration needed
+
+<Info>
+  ClansPlus automatically handles Floodgate players. Version 1.4 fixed currency issues for Floodgate players.
+</Info>
+
+## Troubleshooting Integrations
+
+### PlaceholderAPI Issues
+
+**Placeholders show as text:**
+1. Verify PlaceholderAPI is installed: `/papi version`
+2. Check expansion is registered: `/papi list`
+3. Reload ClansPlus: `/clansplusadmin reload`
+
+**Placeholders show "No Clan":**
+- Player is not in a clan
+- Or customize the message in `config.yml` under `soft-depend.placeholderapi.no-clan`
+
+### Vault/Economy Issues
+
+**"Vault plugin is missing" error:**
+1. Install Vault plugin
+2. Install an economy plugin (EssentialsX, etc.)
+3. Restart server
+4. Verify: `/vault-info`
+
+**Money not deducted:**
+- Check player has sufficient balance
+- Verify economy plugin is working: `/balance`
+- Check ClansPlus console for errors
+
+### Discord Webhook Issues
+
+**Messages not sending:**
+1. Verify webhook URL is correct in `config.yml`
+2. Check Discord channel permissions
+3. Look for errors in console starting with `[Discord Web Hook]`
+4. Test webhook with a tool like Postman
+
+**Formatting issues:**
+- Validate JSON syntax in webhook files
+- Use a JSON validator: [jsonlint.com](https://jsonlint.com)
+- Check placeholder spelling is correct
+
+## API Integration
+
+Developers can integrate with ClansPlus programmatically:
+
+```java
+// Get PlaceholderAPI expansion
+PlaceholderAPISupport papiSupport = new PlaceholderAPISupport();
+String clanName = papiSupport.onPlaceholderRequest(player, "clan_name");
+
+// Check Vault balance
+if (ClansPlus.support.getVault() != null) {
+    double balance = ClansPlus.support.getVault().getBalance(player);
+}
+
+// Send Discord message
+if (ClansPlus.support.getDiscordSupport() != null) {
+    ClansPlus.support.getDiscordSupport()
+        .sendMessage("Custom clan event occurred!");
+}
+```
+
+See the [API Reference](/api-reference) for complete API documentation.

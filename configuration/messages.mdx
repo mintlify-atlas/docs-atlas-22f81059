@@ -1,0 +1,398 @@
+---
+title: 'Messages Configuration'
+description: 'Customize all plugin messages and language files'
+icon: 'message'
+---
+
+## Overview
+
+ClansPlus uses language files to display all messages to players. You can customize every message, add new languages, and integrate with PlaceholderAPI.
+
+## Language System
+
+### Selecting a Language
+
+Configure which language file to use in `config.yml`:
+
+```yaml config.yml
+language: en  # Options: en (English), vi (Vietnamese)
+```
+
+### Language Files
+
+Language files are located in:
+```
+plugins/ClansPlus/language_en.yml
+plugins/ClansPlus/language_vi.yml
+```
+
+### Supported Languages
+
+ClansPlus includes the following language files:
+
+- **English** (`en`) - `language_en.yml`
+- **Vietnamese** (`vi`) - `language_vi.yml`
+
+### Creating Custom Languages
+
+1. Copy an existing language file (e.g., `language_en.yml`)
+2. Rename it following the pattern: `language_<code>.yml`
+3. Translate all messages to your language
+4. Update `config.yml` to use your language code:
+   ```yaml
+   language: <code>
+   ```
+
+## Color Codes
+
+ClansPlus supports both legacy and hex color codes:
+
+### Legacy Color Codes
+
+```yaml
+'&aGreen text &cRed text &eYellow text'
+```
+
+### Hex Colors
+
+```yaml
+'&#3498ebBlue text &#e74c3cRed text &#2ecc71Green text'
+```
+
+### Formatting Codes
+
+- `&l` - **Bold**
+- `&m` - ~~Strikethrough~~
+- `&n` - Underline
+- `&o` - *Italic*
+- `&r` - Reset formatting
+
+## Message Structure
+
+### Rank Display
+
+<ParamField path="rank-display.MEMBER" type="string" default="&#34eb6bMember">
+  Display name for the MEMBER rank.
+</ParamField>
+
+<ParamField path="rank-display.MANAGER" type="string" default="&#1d98d1Manager">
+  Display name for the MANAGER rank.
+</ParamField>
+
+<ParamField path="rank-display.LEADER" type="string" default="&#e8e51eLeader">
+  Display name for the LEADER rank.
+</ParamField>
+
+### Currency Display
+
+<ParamField path="currency-display.VAULT.symbol" type="string" default="&6$">
+  Symbol displayed for Vault currency.
+</ParamField>
+
+<ParamField path="currency-display.VAULT.name" type="string" default="&6money">
+  Display name for Vault currency.
+</ParamField>
+
+<ParamField path="currency-display.PLAYERPOINTS.symbol" type="string" default="&b۞">
+  Symbol displayed for PlayerPoints currency.
+</ParamField>
+
+<ParamField path="currency-display.PLAYERPOINTS.name" type="string" default="&bCoin">
+  Display name for PlayerPoints currency.
+</ParamField>
+
+<ParamField path="currency-display.WARPOINT.symbol" type="string" default="&c✬">
+  Symbol displayed for War Points.
+</ParamField>
+
+<ParamField path="currency-display.WARPOINT.name" type="string" default="&cWar point">
+  Display name for War Points.
+</ParamField>
+
+### Status Messages
+
+<ParamField path="status.ENABLE" type="string" default="&aEnabled">
+  Text displayed for enabled features.
+</ParamField>
+
+<ParamField path="status.DISABLE" type="string" default="&cDisabled">
+  Text displayed for disabled features.
+</ParamField>
+
+### Online Status
+
+<ParamField path="online-status.offline" type="string" default="&cOFFLINE">
+  Status text for offline players.
+</ParamField>
+
+<ParamField path="online-status.online" type="string" default="&aONLINE">
+  Status text for online players.
+</ParamField>
+
+## Core Messages
+
+### Prefix
+
+<ParamField path="messages.prefix" type="string" default="&#3498eb&lCLAN&r ">
+  Prefix prepended to most plugin messages.
+  
+  Use `%prefix%` in other messages to include this prefix.
+</ParamField>
+
+### Common Messages
+
+```yaml language_en.yml
+messages:
+  prefix: '&#3498eb&lCLAN&r '
+  permission-required: '%prefix%&#d12f1d&l| &fYou do not have permission to use this command. (&e%permission%&f)'
+  not-enough-currency: '%prefix%&#d12f1d&l| &fNot enough %currencySymbol%%price% %currencyName%&f.'
+  must-be-in-clan: '%prefix%&#d12f1d&l| &fYou must be in a clan to do this.'
+  required-rank: '%prefix%&#d12f1d&l| &fYou must be %requiredRank%&f to do this.'
+```
+
+## Message Placeholders
+
+ClansPlus messages support various placeholders:
+
+### Player Placeholders
+
+- `%player%` - Player name
+- `%target%` - Target player name
+- `%rank%` - Player's rank display name
+
+### Clan Placeholders
+
+- `%clan%` - Clan name
+- `%clanName%` - Clan name
+- `%formatClanName%` - Formatted clan display name (custom name if set)
+- `%newCustomName%` - New custom name value
+- `%message%` - Clan message/announcement
+
+### Currency Placeholders
+
+- `%price%` - Amount of currency
+- `%currencySymbol%` - Currency symbol from config
+- `%currencyName%` - Currency display name
+
+### Permission Placeholders
+
+- `%permission%` - Permission node required
+- `%requiredRank%` - Rank required for action
+- `%name%` - Subject/permission name
+
+### Time Placeholders
+
+- `%seconds%` - Number of seconds
+- `%minutes%` - Number of minutes
+- `%hours%` - Number of hours
+
+### Location Placeholders
+
+- `%x%` - X coordinate
+- `%y%` - Y coordinate  
+- `%z%` - Z coordinate
+- `%world%` - World name
+
+## Disabling Messages
+
+To disable any message, set it to an empty string:
+
+```yaml
+message-name: ''
+```
+
+For list messages, use a single empty element:
+
+```yaml
+message-list:
+  - ''
+```
+
+## Multi-Line Messages
+
+Use YAML multi-line syntax for longer messages:
+
+```yaml
+incoming-clan-invite: |
+  %prefix%&#35d11d&l| &e%player%&f invited you to join clan &e%clan%&f.
+  &a/clan accept&f to accept
+  &c/clan reject&f to reject
+```
+
+Or use a list:
+
+```yaml
+messages:
+  clan-message:
+    - '&7&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+    - '    &eClan Announcement &b%formatClanName%'
+    - '&f%message%'
+    - '&7&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+```
+
+## Subject Permissions Display
+
+Customize how permission subjects are displayed in menus:
+
+```yaml language_en.yml
+subject:
+  name:
+    INVITE: 'Invite member'
+    KICK: 'Kick member'
+    SETCUSTOMNAME: 'Change custom name'
+    SETICON: 'Change icon'
+    SPAWN: 'Teleport to spawn'
+    SETSPAWN: 'Set spawn point'
+    SETMESSAGE: 'Set announcement'
+    SETMANAGER: 'Add manager'
+    REMOVEMANAGER: 'Remove manager'
+    CHAT: 'Clan chat'
+    UPGRADE: 'Upgrade'
+    MANAGEALLY: 'Manage allies'
+    OPENSTORAGE: 'Open storage'
+  
+  description:
+    INVITE: 'Invite others to the clan'
+    KICK: 'Kick a member out of the clan'
+    SETCUSTOMNAME: 'Change the clan\'s custom name (Color codes)'
+    # ... more descriptions
+```
+
+## Clan Broadcast Messages
+
+Clan broadcasts notify all members of important events:
+
+```yaml language_en.yml
+clan-broadcast:
+  prefix: '&#3498eb&lCLAN &f(%formatClanName%&r) '
+  invite-notification: '%prefix%&#35d11d&l| &r%rank%&e &e%player%&f sent a clan invitation to &e%target%&f.'
+  player-join-clan: '%prefix%&#35d11d&l| &e%player%&f has joined the clan.'
+  player-removed-from-clan: '%prefix%&#d12f1d&l| &e%player%&f was kicked from the clan by &r%rank%&e %by%&f.'
+  player-leave-clan: '%prefix%&#d12f1d&l| &e%player%&f has left the clan.'
+```
+
+## PlaceholderAPI Integration
+
+ClansPlus integrates with PlaceholderAPI to provide clan data in other plugins.
+
+### Configuration
+
+```yaml config.yml
+soft-depends:
+  placeholderapi:
+    no-clan: 'N/A'  # Returned when player has no clan
+    placeholders:
+      clan_name: '%value%'
+      clan_customname: '%value%'
+      clan_formatname: '%value%'
+      player_rank: '%value%'
+```
+
+### Available Placeholders
+
+**Clan Information:**
+- `%clansplus_clan_name%` - Original clan name
+- `%clansplus_clan_customname%` - Custom display name
+- `%clansplus_clan_formatname%` - Formatted name (custom if set, otherwise original)
+- `%clansplus_clan_owner%` - Clan leader name
+- `%clansplus_clan_message%` - Clan announcement
+- `%clansplus_clan_score%` - Clan score
+- `%clansplus_clan_warpoint%` - Clan war points
+- `%clansplus_clan_maxmembers%` - Maximum member count
+- `%clansplus_clan_members%` - Current member count
+- `%clansplus_clan_allies%` - Number of allies
+- `%clansplus_clan_createddate%` - Creation timestamp
+- `%clansplus_clan_format_createddate%` - Formatted creation date
+
+**Player Information:**
+- `%clansplus_player_rank%` - Player's rank (LEADER, MANAGER, MEMBER)
+- `%clansplus_player_format_rank%` - Formatted rank display
+- `%clansplus_player_joindate%` - Timestamp when joined clan
+- `%clansplus_player_format_joindate%` - Formatted join date
+- `%clansplus_player_scorecollected%` - Score contributed by player
+- `%clansplus_player_lastactivated%` - Last activity timestamp
+- `%clansplus_player_format_lastactivated%` - Formatted last activity
+
+**Skill Placeholders:**
+- `%clansplus_clan_skilllevel_<id>%` - Skill level for skill ID
+  - Example: `%clansplus_clan_skilllevel_1%` - Level of skill 1
+
+**Permission Placeholders:**
+- `%clansplus_clan_subjectpermission_<subject>%` - Raw rank for permission
+- `%clansplus_clan_format_subjectpermission_<subject>%` - Formatted rank display
+  - Example: `%clansplus_clan_subjectpermission_INVITE%`
+
+**Top Placeholders:**
+- `%clansplus_top_score_name_<position>%` - Clan name at position
+- `%clansplus_top_score_value_<position>%` - Score at position
+  - Example: `%clansplus_top_score_name_1%` - Top clan name
+  - Example: `%clansplus_top_score_value_1%` - Top clan score
+
+### Customizing Placeholder Output
+
+You can format how PlaceholderAPI values are displayed:
+
+```yaml config.yml
+soft-depends:
+  placeholderapi:
+    no-clan: 'No Clan'
+    placeholders:
+      clan_name: '&b%value%'  # Add color
+      clan_formatname: '&l%value%'  # Make bold
+      player_format_rank: '[%value%]'  # Add brackets
+      top_score_name_: '&6#%top% &r%formatClanName%'  # Custom leaderboard format
+```
+
+### Example Usage in Other Plugins
+
+**Chat Plugin (DeluxeChat, ChatControl, etc.):**
+```yaml
+format: '&7[%clansplus_player_format_rank%&7] %player%: %message%'
+```
+
+**TAB Plugin:**
+```yaml
+header:
+  - '&eClan: &b%clansplus_clan_formatname%'
+  - '&eRank: %clansplus_player_format_rank%'
+```
+
+**Scoreboard Plugin:**
+```yaml
+lines:
+  - '&eClan: &b%clansplus_clan_name%'
+  - '&eMembers: &f%clansplus_clan_members%/%clansplus_clan_maxmembers%'
+  - '&eScore: &a%clansplus_clan_score%'
+```
+
+## Time Format Configuration
+
+```yaml language_en.yml
+time-format:
+  hh-mm-ss: '%hours% hours %minutes% minutes %seconds% seconds'
+  mm-ss: '%minutes% minutes %seconds% seconds'
+  ss: '%seconds% seconds'
+```
+
+## Best Practices
+
+1. **Backup Before Editing** - Always backup language files before making changes
+2. **Test Color Codes** - Use an online tool or test server to preview colors
+3. **Maintain Placeholders** - Keep all placeholders intact when translating
+4. **Consistent Formatting** - Use similar color schemes throughout messages
+5. **Clear Messages** - Keep messages concise and easy to understand
+6. **Preserve Structure** - Don't change message keys, only their values
+
+## Reloading Changes
+
+After editing language files, reload the plugin:
+
+```
+/clanadmin reload
+```
+
+Or restart your server for all changes to take effect.
+
+<Note>
+For help with translations or to contribute new language files, join the ClansPlus Discord: https://discord.gg/NWbTVddmBM
+</Note>
